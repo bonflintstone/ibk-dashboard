@@ -1,20 +1,16 @@
 %div
-  %h1.text-3xl.font-bold Innsbruck Dashboard
+  %h1.text-3xl.font-bold IBK Dashboard
+
+  %p.mb-3
+    Code ist auf
+    = link_to('Github', 'https://github.com/bonflintstone/ibk-dashboard', target: '_blank', class: 'underline')
+    <br />
+    Feedback und Anregungen gerne per
+    = link_to("Mail", "mailto:waxen_junkier.0v@icloud.com", class: 'underline')
 
   %p
     Zuletzt aktualisiert:
     %span.font-bold= @refetch_event.created_at.strftime("%d.%m.%Y %H:%M:%S")
-
-  .m-2.border.border-gray-300.p-2
-    = Redcarpet::Markdown.new(Redcarpet::Render::HTML.new).render(File.read('todo.md')).html_safe
-
-  %p
-    Code ist auf
-    = link_to('Github', 'https://github.com/bonflintstone/ibk-dashboard', target: '_blank', class: 'underline')
-    Feedback und Anregungen gerne per
-    = link_to("Mail", "mailto:waxen_junkier.0v@icloud.com", class: 'underline')
-
-  %h2.text-2xl.mt-4 Events
 
   - @events.group_by(&:date).each do |date, events|
     %h3.text-xl.font-bold= date.strftime("%d.%m.%Y")
