@@ -5,9 +5,6 @@
     Zuletzt aktualisiert:
     %span.font-bold= @refetch_event.created_at.strftime("%d.%m.%Y %H:%M:%S")
 
-  %p.mt-4 Ich mag kein Instagram aber will trotzdem wissen was in Innsbuck so abgeht. Also hab ich die Website gebastelt.
-  %p Aktuell bekommen wir Events von: Treibhaus, Theater Praesent, Die Bäckerei und Leokino. Ich freu mich über Vorschläge, kann aber nur neue Organisationen hinzufügen wenn die Veranstaltungen auf einer Website gelistet werden und nicht nur Auf Insta. Montagu geht z.B. leider nicht.
-
   .m-2.border.border-gray-300.p-2
     = Redcarpet::Markdown.new(Redcarpet::Render::HTML.new).render(File.read('todo.md')).html_safe
 
@@ -24,8 +21,10 @@
 
     - events.each do |event|
       = link_to event.link, target: '_blank' do
-        %div.my-2.p-2{ class: event_color(event)}
-          %p= event.datetime.strftime("%H:%M")
-          %p.font-bold= event.name
-          %p=event.description
-          %p.font-bold= event.location
+        .my-2.py-2
+          %p.pl-2.py-1{ class: event_color(event)}
+            = event.datetime.strftime("%H:%M")
+            %span.font-bold= event.location != event.organization ? "#{event.organization}," : ''
+            %span.font-bold= event.location
+          %p.pl-1.mt-1.font-bold= event.name
+          %p.pl-1.mt-1=event.description.truncate_words(20, omission: '...')
