@@ -1,0 +1,19 @@
+%div
+  %h1.text-3xl.font-bold Innsbruck Dashboard
+  %p Ich mag kein Instagram aber will trotzdem wissen was in Innsbuck so abgeht. Also hab ich die Website gebastelt.
+
+  .m-2.border.border-gray-300.p-2
+    = Redcarpet::Markdown.new(Redcarpet::Render::HTML.new).render(File.read('todo.md')).html_safe
+
+  %h2.text-2xl Events
+
+  - @events.group_by(&:date).each do |date, events|
+    %h3.text-xl.font-bold= date.strftime("%d.%m.%Y")
+
+    - events.each do |event|
+      %div.m-2.p-2{ class: event_color(event)}
+        %p
+          = event.datetime.strftime("%H:%M")
+          %a.text-blue-600.hover:text-blue-800{ href: event.link }= event.name
+        %p.font-bold= event.location
+        %p=event.description
