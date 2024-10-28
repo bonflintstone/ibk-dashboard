@@ -25,7 +25,7 @@
       %button.hidable.rounded.px-1.m-1{ 'data-action': "events#toggleOrganization", 'data-organization': organization, class: organization_color(organization) }= organization
 
     - @events.group_by(&:date).each do |date, events|
-      %h3.text-xl.font-bold= date.strftime("%d.%m.%Y")
+      %h3.text-xl.font-bold= l(date, format: "%A %d.%m.%Y")
 
       - events.each do |event|
         = link_to event.link, target: '_blank' do
