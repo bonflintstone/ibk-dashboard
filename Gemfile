@@ -1,12 +1,17 @@
 source "https://rubygems.org"
 
+ruby "3.3.5"
+
 gem "bootsnap", require: false
+gem "dotenv-rails", "~> 3.1"
 gem "haml-rails", "~> 2.1"
+gem "httparty", "~> 0.22.0"
 gem "importmap-rails"
 gem "jbuilder"
 gem "pg", "~> 1.1"
 gem "puma", ">= 5.0"
 gem "rails", "~> 7.2.1", ">= 7.2.1.2"
+gem "redcarpet", "~> 3.6"
 gem "sprockets-rails"
 gem "stimulus-rails"
 gem "tailwindcss-rails"
@@ -26,9 +31,3 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
-
-gem "dotenv-rails", "~> 3.1"
-
-gem "httparty", "~> 0.22.0"
-
-gem "redcarpet", "~> 3.6"
