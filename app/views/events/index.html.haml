@@ -5,6 +5,9 @@
   .m-2.border.border-gray-300.p-2
     = Redcarpet::Markdown.new(Redcarpet::Render::HTML.new).render(File.read('todo.md')).html_safe
 
+  %p Code ist auf Github: https://github.com/bonflintstone/ibk-dashboard
+  %p Für Feedback und Anregungen: 
+
   %h2.text-2xl Events
 
   - @events.group_by(&:date).each do |date, events|
