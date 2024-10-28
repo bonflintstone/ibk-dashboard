@@ -8,7 +8,7 @@ class FetchTheaterPraesent
       title = event_row.dig("node", "title")
       datetime = event_row.dig("node", "date", "start")&.then(&Time.method(:parse))
       description = ""
-      link = "https://www.theater-praesent.at/events/antrag/"
+      link = "https://kupfticket.com/shops/theater-praesent"
 
       Event.create(datetime:, location: "Theater Praesent", name: title, link:, description:, organization: "Theater Praesent")
     end

@@ -9,6 +9,8 @@ module ApplicationHelper
       "bg-yellow-100"
     when "Die Bäckerei"
       "bg-green-100"
+    when "Haus der Musik"
+      "bg-purple-100"
     end
   end
 end
