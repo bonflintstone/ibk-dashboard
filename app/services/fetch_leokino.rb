@@ -13,7 +13,7 @@ class FetchLeokino
       location = movie_row.css("td:first-child h3:last-of-type").text.strip
       name = movie_row.css("td:last-child h3 a").children.map(&:text).join(" - ")
       link = "https://leokino.at" + movie_row.css("td:last-child h3 a").attr("href").value
-      description = movie_row.css("td:last-child p:last-child").text.sub('[ mehr ]', '').strip
+      description = movie_row.css("td:last-child p:last-child").text.sub("[ mehr ]", "").strip
 
       Event.create(datetime:, location:, name:, link:, description:, organization: "Leokino")
     end
