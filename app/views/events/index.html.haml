@@ -1,14 +1,15 @@
 %div
   %h1.text-3xl.font-bold Innsbruck Dashboard
   %p Ich mag kein Instagram aber will trotzdem wissen was in Innsbuck so abgeht. Also hab ich die Website gebastelt.
+  %p Aktuell bekommen wir Events von: Treibhaus, Theater Praesent, Die Bäckerei und Leokino. Ich freu mich über Vorschläge, kann aber nur neue Organisationen hinzufügen wenn die Veranstaltungen auf einer Website gelistet werden und nicht nur Auf Insta. Montagu geht z.B. leider nicht.
 
   .m-2.border.border-gray-300.p-2
     = Redcarpet::Markdown.new(Redcarpet::Render::HTML.new).render(File.read('todo.md')).html_safe
 
   %p Code ist auf Github: https://github.com/bonflintstone/ibk-dashboard
-  %p Für Feedback und Anregungen: 
+  %p Für Feedback und Anregungen: <a href="mailto:waxen_junkier.0v@icloud.com">waxen_junkier.0v@icloud.com</a>
 
-  %h2.text-2xl Events
+  %h2.text-2xl.mt-4 Events
 
   - @events.group_by(&:date).each do |date, events|
     %h3.text-xl.font-bold= date.strftime("%d.%m.%Y")
