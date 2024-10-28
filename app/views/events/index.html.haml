@@ -12,15 +12,27 @@
     Zuletzt aktualisiert:
     %span.font-bold= @refetch_event.created_at.strftime("%d.%m.%Y %H:%M:%S")
 
-  - @events.group_by(&:date).each do |date, events|
-    %h3.text-xl.font-bold= date.strftime("%d.%m.%Y")
+  %div{ 'data-controller': 'events' }
+    - Event::ORGANIZATIONS.each do |organization|
+      :css
+        .hidable[data-hidden = 'true'] {
+          color: grey;
+        }
 
-    - events.each do |event|
-      = link_to event.link, target: '_blank' do
-        .my-2.py-2
-          %p.pl-2.py-1{ class: event_color(event)}
-            = event.datetime.strftime("%H:%M")
-            %span.font-bold= event.location != event.organization ? "#{event.organization}," : ''
-            %span.font-bold= event.location
-          %p.pl-1.mt-1.font-bold= event.name
-          %p.pl-1.mt-1=event.description.truncate_words(20, omission: '...')
+        .hidden {
+          display: none;
+        }
+      %button.hidable.rounded.px-1.m-1{ 'data-action': "events#toggleOrganization", 'data-organization': organization, class: organization_color(organization) }= organization
+
+    - @events.group_by(&:date).each do |date, events|
+      %h3.text-xl.font-bold= date.strftime("%d.%m.%Y")
+
+      - events.each do |event|
+        = link_to event.link, target: '_blank' do
+          .my-2.py-2{ 'data-events-target': 'event', 'data-organization': event.organization }
+            %p.pl-2.py-1{ class: organization_color(event.organization)}
+              = event.datetime.strftime("%H:%M")
+              %span.font-bold= event.location != event.organization ? "#{event.organization}," : ''
+              %span.font-bold= event.location
+            %p.pl-1.mt-1.font-bold= event.name
+            %p.pl-1.mt-1=event.description.truncate_words(20, omission: '...')

@@ -1,6 +1,6 @@
 module ApplicationHelper
-  def event_color(event)
-    case event.organization
+  def organization_color(organization)
+    case organization
     when "Leokino"
       "bg-red-100"
     when "Treibhaus"
