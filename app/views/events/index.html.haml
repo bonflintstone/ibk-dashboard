@@ -1,6 +1,11 @@
 %div
   %h1.text-3xl.font-bold Innsbruck Dashboard
-  %p Ich mag kein Instagram aber will trotzdem wissen was in Innsbuck so abgeht. Also hab ich die Website gebastelt.
+
+  %p
+    Zuletzt aktualisiert:
+    %span.font-bold= @refetch_event.created_at.strftime("%d.%m.%Y %H:%M:%S")
+
+  %p.mt-4 Ich mag kein Instagram aber will trotzdem wissen was in Innsbuck so abgeht. Also hab ich die Website gebastelt.
   %p Aktuell bekommen wir Events von: Treibhaus, Theater Praesent, Die Bäckerei und Leokino. Ich freu mich über Vorschläge, kann aber nur neue Organisationen hinzufügen wenn die Veranstaltungen auf einer Website gelistet werden und nicht nur Auf Insta. Montagu geht z.B. leider nicht.
 
   .m-2.border.border-gray-300.p-2
