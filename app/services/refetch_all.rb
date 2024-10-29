@@ -7,6 +7,7 @@ class RefetchAll
     FetchTheaterPraesent.call
     FetchBaeckerei.call
     FetchHausDerMusik.call
+    FetchBrux.call
 
     RefetchEvent.create(new_event_count: Event.count)
   end

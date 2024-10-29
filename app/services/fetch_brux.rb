@@ -13,7 +13,7 @@ class FetchBrux
       description = event_row.css("p").text.strip
       location = "Brux"
 
-      pp Event.create(datetime:, location:, name:, link:, description:, organization: "Brux").errors
+      Event.create(datetime:, location:, name:, link:, description:, organization: "Brux")
     end
   end
 end
