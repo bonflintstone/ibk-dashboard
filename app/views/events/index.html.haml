@@ -13,16 +13,15 @@
     %span.font-bold= @refetch_event.created_at.strftime("%d.%m.%Y %H:%M:%S")
 
   %div{ 'data-controller': 'events' }
-    - Event::ORGANIZATIONS.each do |organization|
-      :css
-        .hidable[data-hidden = 'true'] {
-          color: grey;
-        }
-
-        .hidden {
-          display: none;
-        }
-      %button.hidable.rounded.px-1.m-1{ 'data-action': "events#toggleOrganization", 'data-organization': organization, class: organization_color(organization) }= organization
+    .flex.flex-wrap
+      - Event::ORGANIZATIONS.each do |organization|
+        :css
+          .hidden {
+            display: none;
+          }
+        %label.flex.items-center.gap-1.rounded.px-2.py-1.m-1{ class: organization_color(organization) }
+          %input{ type: 'checkbox', checked: 'true', style: 'box-shadow: none', value: organization, 'data-action': "events#toggleOrganization" }
+          = organization
 
     - @events.group_by(&:date).each do |date, events|
       %h3.text-xl.font-bold= l(date, format: "%A %d.%m.%Y")
