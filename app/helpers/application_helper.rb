@@ -11,6 +11,8 @@ module ApplicationHelper
       "bg-green-100"
     when "Haus der Musik"
       "bg-purple-100"
+    when "Brux"
+      "bg-pink-100"
     end
   end
 end
