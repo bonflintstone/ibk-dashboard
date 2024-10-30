@@ -1,5 +1,10 @@
 class Event < ApplicationRecord
-  ORGANIZATIONS = [ "Leokino", "Theater Praesent", "Treibhaus", "Die Bäckerei", "Haus der Musik", "Brux" ]
+  ORGANIZATIONS_BY_TYPE = {
+    'Kino': ['Leokino'],
+    'Theater': ['Theater Praesent', 'Haus der Musik', 'Brux'],
+    'Musik und Kultur': ['Treibhaus', 'Die Bäckerei'],
+  }
+  ORGANIZATIONS = ORGANIZATIONS_BY_TYPE.values.flatten
 
   validates :name, :location, :datetime, :link, presence: true
   validates :organization, inclusion: { in: ORGANIZATIONS }

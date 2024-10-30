@@ -12,24 +12,26 @@
     Zuletzt aktualisiert:
     %span.font-bold= @refetch_event.created_at.strftime("%d.%m.%Y %H:%M:%S")
 
-  %div
-    = form_tag(root_path, method: 'GET', data: { "turbo-frame": "events", controller: :form }) do |f|
-      .flex.flex-wrap
-        - Event::ORGANIZATIONS.each do |organization|
-          %label.flex.items-center.gap-1.rounded.px-2.py-1.m-1{ class: organization_color(organization) }
-            = check_box_tag 'organizations[]', organization, checked: @event_filter[:organizations].include?(organization), data: { action: 'form#submit' }
-            = organization
+  .flex.flex-wrap
+    = link_to 'Alle', root_path, class: 'gap-1 rounded px-2 py-1 m-1 border' 
+    - Event::ORGANIZATIONS_BY_TYPE.each do |type, organizations|
+      = link_to type, root_path(organizations:), class: 'gap-1 rounded px-2 py-1 m-1 border' 
+  = form_tag(root_path, method: 'GET', data: { controller: :form }) do |f|
+    .flex.flex-wrap
+      - Event::ORGANIZATIONS.each do |organization|
+        %label.flex.items-center.gap-1.rounded.px-2.py-1.m-1.border{ class: organization_color(organization) }
+          = check_box_tag 'organizations[]', organization, checked: @event_filter[:organizations].include?(organization), data: { action: 'form#submit' }
+          = organization
 
-    = turbo_frame_tag('events') do
-      - @events.group_by(&:date).each do |date, events|
-        %h3.text-xl.font-bold= l(date, format: "%A %d.%m.%Y")
+  - @events.group_by(&:date).each do |date, events|
+    %h3.text-xl.font-bold= l(date, format: "%A %d.%m.%Y")
 
-        - events.each do |event|
-          = link_to event.link, target: '_blank' do
-            .my-2.py-2{ 'data-events-target': 'event', 'data-organization': event.organization }
-              %p.pl-2.py-1{ class: organization_color(event.organization)}
-                = event.datetime.strftime("%H:%M")
-                %span.font-bold= event.location != event.organization ? "#{event.organization}," : ''
-                %span.font-bold= event.location
-              %p.pl-1.mt-1.font-bold= event.name
-              %p.pl-1.mt-1=event.description.truncate_words(20, omission: '...')
+    - events.each do |event|
+      = link_to event.link, target: '_blank' do
+        .my-2.py-2{ 'data-events-target': 'event', 'data-organization': event.organization }
+          %p.pl-2.py-1{ class: organization_color(event.organization)}
+            = event.datetime.strftime("%H:%M")
+            %span.font-bold= event.location != event.organization ? "#{event.organization}," : ''
+            %span.font-bold= event.location
+          %p.pl-1.mt-1.font-bold= event.name
+          %p.pl-1.mt-1=event.description.truncate_words(20, omission: '...')
