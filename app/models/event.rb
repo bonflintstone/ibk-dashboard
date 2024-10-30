@@ -4,7 +4,7 @@ class Event < ApplicationRecord
     'Theater': ['Theater Praesent', 'Haus der Musik', 'Brux'],
     'Musik und Kultur': ['Treibhaus', 'Die Bäckerei'],
   }
-  ORGANIZATIONS = ORGANIZATIONS_BY_TYPE.values.flatten
+  ORGANIZATIONS = ORGANIZATIONS_BY_TYPE.values.flatten.uniq
 
   validates :name, :location, :datetime, :link, presence: true
   validates :organization, inclusion: { in: ORGANIZATIONS }
