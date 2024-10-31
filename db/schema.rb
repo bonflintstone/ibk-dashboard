@@ -10,9 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_10_28_160404) do
+ActiveRecord::Schema[7.2].define(version: 2024_10_31_101411) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  # Custom types defined in this database.
+  # Note that some types may not work with other database engines. Be careful if changing database.
+  create_enum "event_source", ["scraper", "webform"]
 
   create_table "events", force: :cascade do |t|
     t.string "name"
@@ -23,6 +27,8 @@ ActiveRecord::Schema[7.2].define(version: 2024_10_28_160404) do
     t.string "organization"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "approved_at"
+    t.enum "source", null: false, enum_type: "event_source"
   end
 
   create_table "refetch_events", force: :cascade do |t|

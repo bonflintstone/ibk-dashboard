@@ -1,0 +1,38 @@
+<div class="w-full my-5">
+  <h1 class="text-3xl font-bold">IBK Dashboard</h1>
+  <h2 class="text-2xl font-bold">Neues Event</h2>
+
+  <%= form_with(model: @event, class: "mt-4 w-full flex flex-col gap-2 items-stretch") do |f| %>
+    <div>
+      <%= f.label(:name, "Name") %>
+      <%= f.text_field(:name, class: "w-full") %>
+    </div>
+
+    <div>
+      <%= f.label(:link, "Link") %>
+      <%= f.text_field(:link, class: "w-full") %>
+    </div>
+
+    <div>
+      <%= f.label(:organization, "Organization") %>
+      <%= f.text_field(:organization, class: "w-full") %>
+    </div>
+
+    <div>
+      <%= f.label(:location, "Location") %>
+      <%= f.text_field(:location, class: "w-full") %>
+    </div>
+
+    <div>
+      <%= f.label(:datetime, "Datetime") %>
+      <%= f.datetime_field(:datetime, class: "w-full") %>
+    </div>
+
+    <div>
+      <%= f.label(:description, "Description") %>
+      <%= f.text_area(:description, class: "w-full") %>
+    </div>
+
+    <%= f.submit("Speichern", class: "w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer") %>
+  <% end %>
+</div>

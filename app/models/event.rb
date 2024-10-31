@@ -7,9 +7,9 @@ class Event < ApplicationRecord
   ORGANIZATIONS = ORGANIZATIONS_BY_TYPE.values.flatten.uniq
 
   validates :name, :location, :datetime, :link, presence: true
-  validates :organization, inclusion: { in: ORGANIZATIONS }
+  validates :name, uniqueness: { scope: [:datetime, :organization] }
 
-  validates :name, uniqueness: { scope: :datetime }
+  scope :published, -> { where.not(approved_at: nil).or(where(source: :scraper)) }
 
   def date = datetime.to_date
 end
