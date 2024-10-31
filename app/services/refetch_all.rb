@@ -1,6 +1,6 @@
 class RefetchAll
   def self.call
-    Event.destroy_all
+    Event.where(source: :scraper).destroy_all
 
     FetchTreibhaus.call
     FetchLeokino.call

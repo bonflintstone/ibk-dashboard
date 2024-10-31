@@ -2,3 +2,20 @@ de:
   date:
     abbr_day_names: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"]
     day_names: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"]
+    month_names: 
+      -
+      - "Januar"
+      - "Februar"
+      - "März"
+      - "April"
+      - "Mai"
+      - "Juni"
+      - "Juli"
+      - "August"
+      - "September"
+      - "Oktober"
+      - "November"
+      - "Dezember"
+  datetime:
+    distance_in_words:
+      about_x_hours: "etwa %{count} Stunden"

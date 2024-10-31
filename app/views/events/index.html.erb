@@ -37,7 +37,7 @@
 
       <% events.each do |event| %>
         <%= link_to event.link, target: "_blank" do %>
-          <div class="py-2" data-events-target="event" data-organization="<%= event.organization %>">
+          <div class="py-2 px-1 my-2 border" data-events-target="event" data-organization="<%= event.organization %>">
             <p class="pl-2 py-1 <%= organization_color(event.organization) %>">
             <%= event.datetime.strftime("%H:%M") %>
             <span class="font-bold"><%= event.location != event.organization ? "#{event.organization}," : "" %></span>

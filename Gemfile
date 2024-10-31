@@ -31,3 +31,8 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+gem "rails_admin", "~> 3.2"
+gem "sassc-rails"
+
+gem "rails_admin-i18n", "~> 1.20"

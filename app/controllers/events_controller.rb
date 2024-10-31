@@ -15,7 +15,7 @@ class EventsController < ApplicationController
   end
 
   def create
-    @event = Event.new(event_params.merge(source: :webform))
+    @event = Event.new(event_params.merge(source: :webform, organization: "Andere"))
 
     if @event.save
       redirect_to root_path, flash: { notice: "Thanks for your submission. We will check it and then it will go online" }

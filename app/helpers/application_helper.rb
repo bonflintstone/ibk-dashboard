@@ -15,6 +15,8 @@ module ApplicationHelper
       "bg-pink-100"
     when "Tiroler Landestheater"
       "bg-indigo-100"
+    when "Andere"
+      "bg-gray-100"
     end
   end
 end
