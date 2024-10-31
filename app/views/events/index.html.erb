@@ -2,9 +2,9 @@
   <h1 class="text-3xl font-bold">IBK Dashboard</h1>
 
   <p class="mb-3">
-    Code is auf <%= link_to('Github', 'https://github.com/bonflintstone/ibk-dashboard', target: '_blank', class: 'underline') %>
-    <br />
-    Feedback and Suggestions via <%= link_to("Mail", "mailto:waxen_junkier.0v@icloud.com", class: 'underline') %>
+    Code is auf <%= link_to("Github", "https://github.com/bonflintstone/ibk-dashboard", target: "_blank", class: "underline") %>
+    <br>
+    Feedback and Suggestions via <%= link_to("Mail", "mailto:waxen_junkier.0v@icloud.com", class: "underline") %>
   </p>
 
   <p>
@@ -13,17 +13,17 @@
   </p>
 
   <div class="flex flex-wrap">
-    <%= link_to 'All', root_path, class: 'gap-1 rounded px-2 py-1 m-1 border' %>
+    <%= link_to "All", root_path, class: "gap-1 rounded px-2 py-1 m-1 border" %>
     <% Event::ORGANIZATIONS_BY_TYPE.each do |type, organizations| %>
-      <%= link_to type, root_path(organizations:), class: 'gap-1 rounded px-2 py-1 m-1 border' %>
+      <%= link_to type, root_path(organizations:), class: "gap-1 rounded px-2 py-1 m-1 border" %>
     <% end %>
   </div>
 
-    <%= form_tag(root_path, method: 'GET', data: { controller: :form }) do |f| %>
+    <%= form_tag(root_path, method: "GET", data: { controller: :form }) do |f| %>
       <div class="flex flex-wrap">
         <% Event::ORGANIZATIONS.each do |organization| %>
           <label class="flex items-center gap-1 rounded px-2 py-1 m-1 border <%= organization_color(organization) %>">
-            <%= check_box_tag 'organizations[]', organization, checked: @event_filter[:organizations].include?(organization), data: { action: 'form#submit' } %>
+            <%= check_box_tag "organizations[]", organization, checked: @event_filter[:organizations].include?(organization), data: { action: "form#submit" } %>
             <%= organization %>
           </label>
         <% end %>
@@ -34,15 +34,15 @@
       <h3 class="text-xl font-bold mt-7 mb-3"><%= l(date, format: "%A %d.%m.%Y") %></h3>
 
       <% events.each do |event| %>
-        <%= link_to event.link, target: '_blank' do %>
+        <%= link_to event.link, target: "_blank" do %>
           <div class="py-2" data-events-target="event" data-organization="<%= event.organization %>">
             <p class="pl-2 py-1 <%= organization_color(event.organization) %>">
             <%= event.datetime.strftime("%H:%M") %>
-            <span class="font-bold"><%= event.location != event.organization ? "#{event.organization}," : '' %></span>
+            <span class="font-bold"><%= event.location != event.organization ? "#{event.organization}," : "" %></span>
             <span class="font-bold"><%= event.location %></span>
             </p>
             <p class="pl-1 mt-1 font-bold"><%= event.name %></p>
-            <p class="pl-1 mt-1"><%= event.description.truncate_words(20, omission: '...') %></p>
+            <p class="pl-1 mt-1"><%= event.description.truncate_words(20, omission: "...") %></p>
           </div>
         <% end %>
       <% end %>

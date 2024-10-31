@@ -4,7 +4,6 @@ ruby "3.3.5"
 
 gem "bootsnap", require: false
 gem "dotenv-rails", "~> 3.1"
-gem "haml-rails", "~> 2.1"
 gem "httparty", "~> 0.22.0"
 gem "importmap-rails"
 gem "jbuilder"
@@ -21,6 +20,7 @@ group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
   gem "brakeman", require: false
   gem "rubocop-rails-omakase", require: false
+  gem "erb_lint", "~> 0.7.0"
 end
 
 group :development do
