@@ -1,6 +1,5 @@
 glob: "**/*.{html,text,js}{+*,}.erb"
 exclude:
-  - '**/vendor/**/*'
   - '**/node_modules/**/*'
 linters:
   Rubocop:
