@@ -15,7 +15,7 @@ class FetchLeokino
       link = "https://leokino.at" + movie_row.css("td:last-child h3 a").attr("href").value
       description = movie_row.css("td:last-child p:last-child").text.sub("[ mehr ]", "").strip
 
-      Event.create(datetime:, location:, name:, link:, description:, organization: "Leokino")
+      Event.create(datetime:, location:, name:, link:, description:, organization: "Leokino", source: :scraper)
     end
   end
 end

@@ -10,7 +10,7 @@ class FetchTreibhaus
       description = event_row.css(".share-sub").text.strip
       location = "Treibhaus"
 
-      Event.create(datetime:, location:, name:, link:, description:, organization: "Treibhaus")
+      Event.create(datetime:, location:, name:, link:, description:, organization: "Treibhaus", source: :scraper)
     end
   end
 end

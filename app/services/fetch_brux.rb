@@ -13,7 +13,7 @@ class FetchBrux
       description = event_row.css("p").text.strip
       location = "Brux"
 
-      Event.create(datetime:, location:, name:, link:, description:, organization: "Brux")
+      Event.create(datetime:, location:, name:, link:, description:, organization: "Brux", source: :scraper)
     end
   end
 end

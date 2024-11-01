@@ -10,7 +10,7 @@ class FetchTheaterPraesent
       description = ""
       link = "https://kupfticket.com/shops/theater-praesent"
 
-      Event.create(datetime:, location: "Theater Praesent", name: title, link:, description:, organization: "Theater Praesent")
+      Event.create(datetime:, location: "Theater Praesent", name: title, link:, description:, organization: "Theater Praesent", source: :scraper)
     end
   end
 end

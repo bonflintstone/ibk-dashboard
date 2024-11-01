@@ -16,7 +16,7 @@ class FetchBaeckerei
       link = event_row.css("a.event-thumb").attr("href").value
       description = event_row.css(".event-thumb__excerpt").text.strip
 
-      Event.create(datetime:, location:, name:, link:, description:, organization: "Die Bäckerei").valid?
+      Event.create(datetime:, location:, name:, link:, description:, organization: "Die Bäckerei", source: :scraper)
     end
   end
 end

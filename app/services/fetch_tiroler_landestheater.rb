@@ -23,7 +23,7 @@ class FetchTirolerLandestheater
         location = event_row.css(".info > span:first-child").text
         description = event_row.css("h4 + span").text
 
-        Event.create(datetime:, name:, link:, location:, description:, organization: "Tiroler Landestheater")
+        Event.create(datetime:, name:, link:, location:, description:, organization: "Tiroler Landestheater", source: :scraper)
       end
     end
   end

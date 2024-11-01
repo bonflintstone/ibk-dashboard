@@ -12,7 +12,7 @@ class FetchHausDerMusik
       location = event_row.css(".stats .stat:nth-child(2) strong").text
       link = "https://www.haus-der-musik-innsbruck.at" + event_row.css(".info a").attr("href").value
 
-      Event.create(datetime:, location:, name:, link:, description:, organization: "Haus der Musik").errors
+      Event.create(datetime:, location:, name:, link:, description:, organization: "Haus der Musik", source: :scraper)
     end
   end
 end
