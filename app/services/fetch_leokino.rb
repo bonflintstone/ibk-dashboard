@@ -8,7 +8,7 @@ class FetchLeokino
       next unless date.present?
 
       time = movie_row.css("td:first-child h3:first-of-type").text.strip.sub(".", ":")
-      datetime = Time.parse("#{date} #{time}")
+      datetime = Time.zone.parse("#{date} #{time}")
 
       location = movie_row.css("td:first-child h3:last-of-type").text.strip
       name = movie_row.css("td:last-child h3 a").children.map(&:text).join(" - ")

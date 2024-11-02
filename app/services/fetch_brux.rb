@@ -4,7 +4,7 @@ class FetchBrux
     document = Nokogiri::HTML(response.body)
 
     document.css("article[data-spielstaette]").each do |event_row|
-      datetime = event_row.css('[itemprop="startDate"]').attr("content")&.then(&Time.method(:parse))
+      datetime = event_row.css('[itemprop="startDate"]').attr("content")&.then(&Time.zone.method(:parse))
 
       next unless datetime.present?
 

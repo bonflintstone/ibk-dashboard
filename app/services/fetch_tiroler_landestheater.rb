@@ -17,7 +17,7 @@ class FetchTirolerLandestheater
 
         next if time.blank?
 
-        datetime = Time.parse("#{date} #{time}", "%d.%m.%Y %H.%M")
+        datetime = Time.zone.parse("#{date} #{time}")
         name = event_row.css("h4").text
         link = event_row.attr("href")
         location = event_row.css(".info > span:first-child").text

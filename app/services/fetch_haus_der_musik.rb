@@ -4,7 +4,7 @@ class FetchHausDerMusik
     document = Nokogiri::HTML(response.body)
 
     document.css(".EventList article").map do |event_row|
-      datetime = event_row.css("time").attr("datetime")&.then(&Time.method(:parse))
+      datetime = event_row.css("time").attr("datetime")&.then(&Time.zone.method(:parse))
       next unless datetime.present?
 
       name = event_row.css("h2.title-5").text.strip

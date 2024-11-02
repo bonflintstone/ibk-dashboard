@@ -4,7 +4,7 @@ class FetchTreibhaus
     document = Nokogiri::HTML(response.body)
 
     document.css(".event-item").map do |event_row|
-      datetime = event_row.css('[itemprop="startDate"]').attr("content").then(&Time.method(:parse))
+      datetime = event_row.css('[itemprop="startDate"]').attr("content").then(&Time.zone.method(:parse))
       link = event_row.attr("data-details")
       name = event_row.css(".share-title").text.strip
       description = event_row.css(".share-sub").text.strip

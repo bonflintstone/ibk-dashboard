@@ -9,7 +9,7 @@ class FetchBaeckerei
       next unless day.present?
 
       time = event_row.css(".event-thumb__time").text
-      datetime = Time.parse("#{day} #{time}")
+      datetime = Time.zone.parse("#{day} #{time}")
 
       location = "Die Bäckerei"
       name = event_row.css(".event-thumb__title").text.strip
