@@ -1,0 +1,40 @@
+<% require "rails"; require "dotenv-rails"; Dotenv::Rails.load %>
+
+# Name of your application. Used to uniquely configure containers.
+service: ibk_dashboard_2
+
+# Name of the container image.
+image: bonflintstone/ibk_dashboard_2
+
+# Deploy to these servers.
+servers:
+  web:
+    - 49.13.203.148
+
+# proxy:
+#   ssl: true
+#   host: app.example.com
+
+registry:
+  username: bonflintstone
+  password: <%= ENV["KAMAL_REGISTRY_PASSWORD"] %>
+
+env:
+  secret:
+    - RAILS_MASTER_KEY
+  clear:
+    SOLID_QUEUE_IN_PUMA: true
+
+aliases:
+  console: app exec --interactive --reuse "bin/rails console"
+  shell: app exec --interactive --reuse "bash"
+  logs: app logs -f
+  dbc: app exec --interactive --reuse "bin/rails dbconsole"
+
+volumes:
+  - "ibk_dashboard_2_storage:/rails/storage"
+
+asset_path: /rails/public/assets
+
+builder:
+  arch: amd64

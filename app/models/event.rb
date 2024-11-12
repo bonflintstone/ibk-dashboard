@@ -7,6 +7,8 @@ class Event < ApplicationRecord
   }
   ORGANIZATIONS = ORGANIZATIONS_BY_TYPE.values.flatten.uniq
 
+  enum :source, { scraper: 0, webform: 1 }
+
   validates :name, :location, :datetime, :link, presence: true
   validates :name, uniqueness: { scope: [ :datetime, :organization ] }
   validates :organization, inclusion: { in: ORGANIZATIONS }
