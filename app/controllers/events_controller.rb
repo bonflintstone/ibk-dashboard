@@ -6,7 +6,11 @@ class EventsController < ApplicationController
     selected_organizations = params[:organizations].presence || Event::ORGANIZATIONS
 
     @event_filter = { organizations: selected_organizations }
-    @events = Event.published.where(organization: selected_organizations).order(datetime: :asc)
+    @events = Event
+      .published
+      .where(organization: selected_organizations)
+      .where(datetime: Date.today..)
+      .order(datetime: :asc)
     @refetch_event = RefetchEvent.last
   end
 
