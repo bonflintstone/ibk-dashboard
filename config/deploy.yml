@@ -11,9 +11,9 @@ servers:
   web:
     - 49.13.203.148
 
-# proxy:
-#   ssl: true
-#   host: app.example.com
+proxy:
+  ssl: true
+  host: ibk.bonflintstone.com
 
 registry:
   username: bonflintstone
