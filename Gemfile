@@ -32,7 +32,7 @@ group :test do
   gem "selenium-webdriver"
 end
 
-gem "rails_admin", "~> 3.2"
+gem "rails_admin", "~> 3.3"
 gem "sassc-rails"
 
 gem "rails_admin-i18n", "~> 1.20"
