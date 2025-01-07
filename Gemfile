@@ -20,7 +20,7 @@ group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
   gem "brakeman", require: false
   gem "rubocop-rails-omakase", require: false
-  gem "erb_lint", "~> 0.7.0"
+  gem "erb_lint", "~> 0.8.0"
 end
 
 group :development do
