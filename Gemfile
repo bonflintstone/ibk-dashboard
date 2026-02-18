@@ -1,26 +1,28 @@
 source "https://rubygems.org"
 
-ruby "3.3.5"
-
 gem "bootsnap", require: false
 gem "dotenv-rails", "~> 3.1"
 gem "httparty", "~> 0.22.0"
 gem "importmap-rails"
 gem "jbuilder"
-gem "pg", "~> 1.1"
+gem "kamal", require: false
+gem "propshaft"
 gem "puma", ">= 5.0"
-gem "rails", "~> 7.2.1", ">= 7.2.1.2"
-gem "redcarpet", "~> 3.6"
-gem "sprockets-rails"
+gem "rails", "~> 8.0.0"
+gem "solid_cable"
+gem "solid_cache"
+gem "solid_queue"
+gem "sqlite3", ">= 2.1"
 gem "stimulus-rails"
 gem "tailwindcss-rails"
+gem "thruster", require: false
 gem "turbo-rails"
+gem "tzinfo-data", platforms: %i[ windows jruby ]
 
 group :development, :test do
-  gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
   gem "brakeman", require: false
+  gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
   gem "rubocop-rails-omakase", require: false
-  gem "erb_lint", "~> 0.7.0"
 end
 
 group :development do
@@ -31,8 +33,3 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
-
-gem "rails_admin", "~> 3.2"
-gem "sassc-rails"
-
-gem "rails_admin-i18n", "~> 1.20"
