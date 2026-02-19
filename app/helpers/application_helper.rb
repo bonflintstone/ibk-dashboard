@@ -15,6 +15,8 @@ module ApplicationHelper
       "bg-pink-100"
     when "Kellertheater"
       "bg-orange-100"
+    when "Innsbruck Music Hall"
+      "bg-teal-100"
     when "Tiroler Landestheater"
       "bg-indigo-100"
     when "Andere"

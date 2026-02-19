@@ -10,6 +10,7 @@ class RefetchAll
     FetchHausDerMusik.call
     FetchBrux.call
     FetchTirolerLandestheater.call
+    FetchInnsbruckMusicHall.call
 
     RefetchEvent.create(new_event_count: Event.count)
   end

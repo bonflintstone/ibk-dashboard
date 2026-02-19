@@ -2,7 +2,7 @@ class Event < ApplicationRecord
   ORGANIZATIONS_BY_TYPE = {
     'Kino': [ "Leokino" ],
     'Theater': [ "Theater Praesent", "Haus der Musik", "Brux", "Tiroler Landestheater", "Kellertheater" ],
-    'Musik und Kultur': [ "Treibhaus", "Die Bäckerei" ],
+    'Musik und Kultur': [ "Treibhaus", "Die Bäckerei", "Innsbruck Music Hall" ],
     'Andere': [ "Andere" ]
   }
   ORGANIZATIONS = ORGANIZATIONS_BY_TYPE.values.flatten.uniq
