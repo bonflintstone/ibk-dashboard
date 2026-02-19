@@ -3,17 +3,17 @@ class FetchBrux
     response = HTTParty.get("https://brux.at/spielplan")
     document = Nokogiri::HTML(response.body)
 
-    document.css("article[data-spielstaette]").each do |event_row|
+    document.css('article[itemtype="https://schema.org/Event"]').each do |event_row|
       datetime = event_row.css('[itemprop="startDate"]').attr("content")&.then(&Time.zone.method(:parse))
 
       next unless datetime.present?
 
-      name = event_row.css("a.c-link").text.strip
-      link = "https://www.brux.at/" + event_row.css("a.c-link").attr("href").value
-      description = event_row.css("p").text.strip
+      name = event_row.css(".lp-title").text.strip
+      link = event_row.css("a.lp-title-link").attr("href").value
+      description = event_row.css(".lp-subtitle").text.strip
       location = "Brux"
 
-      Event.create(datetime:, location:, name:, link:, description:, organization: "Brux", source: :scraper)
+      Event.create!(datetime:, location:, name:, link:, description:, organization: "Brux", source: :scraper)
     end
   end
 end
