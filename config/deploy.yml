@@ -1,4 +1,4 @@
-<% require "rails"; require "dotenv-rails"; Dotenv::Rails.load %>
+<% require "rails"; require "dotenv-rails"; Dotenv::Rails.overload %>
 
 # Name of your application. Used to uniquely configure containers.
 service: ibk_dashboard
@@ -22,6 +22,7 @@ registry:
 env:
   secret:
     - RAILS_MASTER_KEY
+    - SECRET_KEY_BASE
   clear:
     SOLID_QUEUE_IN_PUMA: true
 
@@ -30,11 +31,6 @@ aliases:
   shell: app exec --interactive --reuse "bash"
   logs: app logs -f
   dbc: app exec --interactive --reuse "bin/rails dbconsole"
-
-volumes:
-  - "ibk_dashboard_2_storage:/rails/storage"
-
-asset_path: /rails/public/assets
 
 builder:
   arch: amd64
