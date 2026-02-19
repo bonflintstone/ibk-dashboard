@@ -13,6 +13,8 @@ module ApplicationHelper
       "bg-purple-100"
     when "Brux"
       "bg-pink-100"
+    when "Kellertheater"
+      "bg-orange-100"
     when "Tiroler Landestheater"
       "bg-indigo-100"
     when "Andere"

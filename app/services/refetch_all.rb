@@ -5,6 +5,7 @@ class RefetchAll
     FetchTreibhaus.call
     FetchLeokino.call
     FetchTheaterPraesent.call
+    FetchKellertheater.call
     FetchBaeckerei.call
     FetchHausDerMusik.call
     FetchBrux.call
