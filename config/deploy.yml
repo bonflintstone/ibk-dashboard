@@ -1,19 +1,19 @@
 <% require "rails"; require "dotenv-rails"; Dotenv::Rails.load %>
 
 # Name of your application. Used to uniquely configure containers.
-service: ibk_dashboard_2
+service: ibk_dashboard
 
 # Name of the container image.
-image: bonflintstone/ibk_dashboard_2
+image: bonflintstone/ibk_dashboard
 
 # Deploy to these servers.
 servers:
   web:
-    - 49.13.203.148
+    - ibk-dashboard.at
 
 proxy:
   ssl: true
-  host: ibk.bonflintstone.com
+  host: ibk-dashboard.at
 
 registry:
   username: bonflintstone

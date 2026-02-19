@@ -5,7 +5,6 @@ gem "dotenv-rails", "~> 3.1"
 gem "httparty", "~> 0.22.0"
 gem "importmap-rails"
 gem "jbuilder"
-gem "kamal", require: false
 gem "propshaft"
 gem "puma", ">= 5.0"
 gem "rails", "~> 8.0.0"
@@ -27,6 +26,7 @@ end
 
 group :development do
   gem "web-console"
+  gem "kamal", require: false
 end
 
 group :test do
