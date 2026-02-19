@@ -13,7 +13,9 @@ servers:
 
 proxy:
   ssl: true
-  host: ibk-dashboard.at
+  hosts:
+    - ibk-dashboard.at
+    - www.ibk-dashboard.at
 
 registry:
   username: bonflintstone
@@ -25,6 +27,14 @@ env:
     - SECRET_KEY_BASE
   clear:
     SOLID_QUEUE_IN_PUMA: true
+
+volumes:
+  - "storage:/rails/storage"
+
+volumes:
+  - "ibk_dashboard_2_storage:/rails/storage"
+
+asset_path: /rails/public/assets
 
 aliases:
   console: app exec --interactive --reuse "bin/rails console"
