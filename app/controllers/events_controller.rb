@@ -2,12 +2,9 @@ class EventsController < ApplicationController
   after_action :track_visit, only: :index
 
   def index
-    selected_organizations = params[:organizations].presence || Event::ORGANIZATIONS
-
-    @event_filter = { organizations: selected_organizations }
+    # filtering by organization happens client-side (events_controller.js)
     @events = Event
       .published
-      .where(organization: selected_organizations)
       .where(datetime: Date.today..)
       .order(datetime: :asc)
     @refetch_event = RefetchEvent.last

@@ -1,4 +1,4 @@
-<div>
+<div class="w-full" data-controller="events">
   <h1 class="text-3xl font-bold">IBK Dashboard</h1>
 
   <% if @refetch_event %>
@@ -8,39 +8,54 @@
     </p>
   <% end %>
 
-  <div class="flex flex-wrap">
-    <%= link_to "All", root_path, class: "gap-1 rounded px-2 py-1 m-1 border" %>
-    <% Event::ORGANIZATIONS_BY_TYPE.each do |type, organizations| %>
-      <%= link_to type, root_path(organizations:), class: "gap-1 rounded px-2 py-1 m-1 border" %>
-    <% end %>
+  <button type="button" class="md:hidden rounded px-3 py-2 mt-3 border font-bold" data-action="events#toggleFilters">
+    Filter <span data-events-target="filterCount"></span>
+  </button>
+
+  <div class="hidden md:block" data-events-target="filterPanel">
+    <div class="flex flex-wrap mt-2">
+      <button type="button" class="rounded px-2 py-1 m-1 border font-bold" data-events-target="allChip" data-action="events#showAll">Alle</button>
+      <% Event::ORGANIZATIONS_BY_TYPE.each do |type, organizations| %>
+        <button type="button" class="rounded px-2 py-1 m-1 border font-bold" data-events-target="categoryChip" data-action="events#toggleCategory" data-organizations="<%= organizations.to_json %>"><%= type %></button>
+      <% end %>
+    </div>
+
+    <div class="flex flex-wrap">
+      <% Event::ORGANIZATIONS.each do |organization| %>
+        <button type="button" class="rounded px-2 py-1 m-1 border <%= organization_color(organization) %>" data-events-target="chip" data-action="events#toggleOrganization" data-organization="<%= organization %>"><%= organization %></button>
+      <% end %>
+    </div>
   </div>
 
-    <%= form_tag(root_path, method: "GET", data: { controller: :form }) do |f| %>
-      <div class="flex flex-wrap">
-        <% Event::ORGANIZATIONS.each do |organization| %>
-          <label class="flex items-center gap-1 rounded px-2 py-1 m-1 border <%= organization_color(organization) %>">
-            <%= check_box_tag "organizations[]", organization, checked: @event_filter[:organizations].include?(organization), data: { action: "form#submit" } %>
-            <%= organization %>
-          </label>
-        <% end %>
-      </div>
-    <% end %>
+  <% events_by_date = @events.group_by(&:date) %>
 
-    <% @events.group_by(&:date).each do |date, events| %>
-      <h3 class="text-xl font-bold p-3 mt-4 sticky top-0 bg-white"><%= l(date, format: "%A %d.%m.%Y") %></h3>
+  <nav class="sticky top-0 z-10 bg-white flex overflow-x-auto whitespace-nowrap py-2 mt-2 border-b">
+    <% events_by_date.each_key do |date| %>
+      <a href="#date-<%= date.iso8601 %>" class="rounded px-2 py-1 mx-1 border shrink-0" data-events-target="dateLink">
+        <%= date == Date.today ? "Heute" : l(date, format: "%a %d.%m.") %>
+      </a>
+    <% end %>
+  </nav>
+
+  <% events_by_date.each do |date, events| %>
+    <section id="date-<%= date.iso8601 %>" class="scroll-mt-14" data-events-target="dateGroup">
+      <h3 class="text-xl font-bold p-3 mt-4 sticky top-12 bg-white"><%= l(date, format: "%A %d.%m.%Y") %></h3>
 
       <% events.each do |event| %>
-        <%= link_to event.link, target: "_blank" do %>
-          <div class="py-2 px-1 my-2 border" data-events-target="event" data-organization="<%= event.organization %>">
+        <%= link_to event.link, target: "_blank", class: "block", data: { events_target: "event", organization: event.organization } do %>
+          <div class="py-2 px-1 my-2 border">
             <p class="pl-2 py-1 <%= organization_color(event.organization) %>">
             <%= event.datetime.strftime("%H:%M") %>
             <span class="font-bold"><%= event.location != event.organization ? "#{event.organization}," : "" %></span>
             <span class="font-bold"><%= event.location %></span>
             </p>
             <p class="pl-1 mt-1 font-bold"><%= event.name %></p>
-            <p class="pl-1 mt-1"><%= event.description.truncate_words(20, omission: "...") %></p>
+            <p class="pl-1 mt-1"><%= event.description.to_s.truncate_words(20, omission: "...") %></p>
           </div>
         <% end %>
       <% end %>
-    <% end %>
+    </section>
+  <% end %>
+
+  <p class="hidden mt-8" data-events-target="emptyMessage">Keine Events für diese Auswahl.</p>
 </div>

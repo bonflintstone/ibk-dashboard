@@ -2,7 +2,10 @@ class FetchLeokino
   BASE_URL = "https://www.leokino.at"
 
   # The program is loaded via AJAX fragments, one day per request.
+  # Film synopses only exist on the film detail pages, fetched once per film.
   def self.call
+    synopses = {}
+
     (Date.today..Date.today + 6).each do |date|
       response = HTTParty.get("#{BASE_URL}/ajax/programm.php", query: { dateSet: date.to_s })
       document = Nokogiri::HTML(response.body)
@@ -21,10 +24,23 @@ class FetchLeokino
         details = screening.css(".programmBottom h6").first
           &.children&.select(&:text?)&.map { |node| node.text.strip }&.compact_blank || []
         location = details.first.presence || "Leokino"
-        description = details.drop(1).join(", ")
+        description = synopses[link] ||= fetch_synopsis(link, fallback: details.drop(1).join(", "))
 
         Event.create(datetime:, location:, name:, link:, description:, organization: "Leokino", source: :scraper)
       end
     end
+  end
+
+  def self.fetch_synopsis(link, fallback:)
+    response = HTTParty.get(link)
+    document = Nokogiri::HTML(response.body)
+
+    synopsis = document.css(".col9 .col6 > div")
+      .map { |node| node.text.gsub(/\s+/, " ").strip }
+      .find { |text| text.length > 100 }
+
+    synopsis.presence || fallback
+  rescue StandardError
+    fallback
   end
 end
