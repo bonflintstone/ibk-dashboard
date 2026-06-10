@@ -10,6 +10,13 @@ class EventsController < ApplicationController
     @refetch_event = RefetchEvent.last
   end
 
+  def feed
+    @events = Event
+      .published
+      .where(datetime: Date.today..)
+      .order(datetime: :asc)
+  end
+
   def new
     @event = Event.new
   end

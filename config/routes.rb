@@ -14,6 +14,8 @@ Rails.application.routes.draw do
 
   resources :events, only: %i[new create]
 
+  get "feed" => "events#feed", as: :feed, defaults: { format: "rss" }
+
   get "status" => "status#show"
   get "impressum" => "pages#imprint", as: :imprint
 end

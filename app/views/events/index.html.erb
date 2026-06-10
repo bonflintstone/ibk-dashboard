@@ -7,41 +7,43 @@
     </p>
   <% end %>
 
-  <div class="mt-4 flex flex-wrap gap-2">
-    <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-events-target="allChip" data-action="events#showAll">Alle</button>
-    <% Event::ORGANIZATIONS_BY_TYPE.each do |type, organizations| %>
-      <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-events-target="categoryChip" data-action="events#selectCategory" data-organizations="<%= organizations.to_json %>"><%= type %></button>
-    <% end %>
-  </div>
-
-  <button type="button" class="md:hidden mt-2 cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-action="events#toggleFilters">
-    Filter <span data-events-target="filterCount"></span>
-  </button>
-
-  <div class="hidden md:block" data-events-target="filterPanel">
-    <div class="mt-2 flex flex-wrap gap-2">
-      <% Event::ORGANIZATIONS.each do |organization| %>
-        <button type="button" class="cursor-pointer flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1 text-sm" data-events-target="chip" data-action="events#toggleOrganization" data-organization="<%= organization %>">
-          <span class="inline-block h-2 w-2 rounded-full <%= organization_accent_color(organization) %>"></span><%= organization %>
-        </button>
-      <% end %>
-    </div>
-  </div>
-
   <% events_by_date = @events.group_by(&:date) %>
 
-  <nav class="no-scrollbar sticky top-0 z-10 -mx-4 flex gap-2 overflow-x-auto bg-gray-50 px-4 py-3 mt-2">
-    <% events_by_date.each_key do |date| %>
-      <a href="#date-<%= date.iso8601 %>" class="flex shrink-0 flex-col items-center rounded-lg border border-gray-300 bg-white px-3 py-1 leading-tight" data-events-target="dateLink">
-        <span class="text-xs text-gray-500"><%= date == Date.today ? "Heute" : l(date, format: "%a") %></span>
-        <span class="font-bold tabular-nums"><%= date.day %></span>
-      </a>
-    <% end %>
-  </nav>
+  <div class="sticky top-0 z-10 -mx-4 bg-gray-50 px-4 pt-4" data-events-target="stickyHeader">
+    <div class="flex flex-wrap gap-2">
+      <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-events-target="allChip" data-action="events#showAll">Alle</button>
+      <% Event::ORGANIZATIONS_BY_TYPE.each do |type, organizations| %>
+        <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-events-target="categoryChip" data-action="events#selectCategory" data-organizations="<%= organizations.to_json %>"><%= type %></button>
+      <% end %>
+    </div>
+
+    <button type="button" class="md:hidden mt-2 cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-action="events#toggleFilters">
+      Filter <span data-events-target="filterCount"></span>
+    </button>
+
+    <div class="hidden md:block" data-events-target="filterPanel">
+      <div class="mt-2 flex flex-wrap gap-2">
+        <% Event::ORGANIZATIONS.each do |organization| %>
+          <button type="button" class="cursor-pointer flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1 text-sm" data-events-target="chip" data-action="events#toggleOrganization" data-organization="<%= organization %>">
+            <span class="inline-block h-2 w-2 rounded-full <%= organization_accent_color(organization) %>"></span><%= organization %>
+          </button>
+        <% end %>
+      </div>
+    </div>
+
+    <nav class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-3 mt-2">
+      <% events_by_date.each_key do |date| %>
+        <a href="#date-<%= date.iso8601 %>" class="flex shrink-0 flex-col items-center rounded-lg border border-gray-300 bg-white px-3 py-1 leading-tight" data-events-target="dateLink">
+          <span class="text-xs text-gray-500"><%= date == Date.today ? "Heute" : l(date, format: "%a") %></span>
+          <span class="font-bold tabular-nums"><%= date.day %></span>
+        </a>
+      <% end %>
+    </nav>
+  </div>
 
   <% events_by_date.each do |date, events| %>
-    <section id="date-<%= date.iso8601 %>" class="scroll-mt-16" data-events-target="dateGroup">
-      <h3 class="sticky top-14 bg-gray-50 pt-4 pb-2 text-sm font-semibold uppercase tracking-wide text-gray-500"><%= l(date, format: "%A %d. %B") %></h3>
+    <section id="date-<%= date.iso8601 %>" class="scroll-mt-(--filter-height,4rem)" data-events-target="dateGroup">
+      <h3 class="sticky top-(--filter-height,3.5rem) bg-gray-50 pt-4 pb-2 text-sm font-semibold uppercase tracking-wide text-gray-500"><%= l(date, format: "%A %d. %B") %></h3>
 
       <% events.each do |event| %>
         <%= link_to event.link, target: "_blank", class: "block mb-3", data: { events_target: "event", organization: event.organization } do %>

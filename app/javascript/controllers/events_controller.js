@@ -7,13 +7,27 @@ const STORAGE_KEY = "ibk-dashboard-organizations"
 export default class extends Controller {
   static targets = [
     "event", "dateGroup", "dateLink", "chip", "categoryChip", "allChip",
-    "filterPanel", "filterCount", "emptyMessage"
+    "filterPanel", "filterCount", "emptyMessage", "stickyHeader"
   ]
   static values = { defaultSelection: Array }
 
   connect() {
     this.selected = new Set(this.initialSelection())
     this.apply()
+
+    // The sticky filter block's height varies (wrapping chips, toggled panel),
+    // so the date headings' sticky offset is kept in a CSS variable.
+    this.resizeObserver = new ResizeObserver(() => this.updateStickyOffset())
+    this.resizeObserver.observe(this.stickyHeaderTarget)
+    this.updateStickyOffset()
+  }
+
+  disconnect() {
+    this.resizeObserver?.disconnect()
+  }
+
+  updateStickyOffset() {
+    this.element.style.setProperty("--filter-height", `${this.stickyHeaderTarget.offsetHeight}px`)
   }
 
   // URL beats the user's saved filters, saved filters beat the default.
