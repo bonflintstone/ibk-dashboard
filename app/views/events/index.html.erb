@@ -8,18 +8,18 @@
     </p>
   <% end %>
 
-  <button type="button" class="md:hidden rounded px-3 py-2 mt-3 border font-bold" data-action="events#toggleFilters">
+  <div class="flex flex-wrap mt-2">
+    <button type="button" class="rounded px-2 py-1 m-1 border font-bold" data-events-target="allChip" data-action="events#showAll">Alle</button>
+    <% Event::ORGANIZATIONS_BY_TYPE.each do |type, organizations| %>
+      <button type="button" class="rounded px-2 py-1 m-1 border font-bold" data-events-target="categoryChip" data-action="events#selectCategory" data-organizations="<%= organizations.to_json %>"><%= type %></button>
+    <% end %>
+  </div>
+
+  <button type="button" class="md:hidden rounded px-2 py-1 m-1 border" data-action="events#toggleFilters">
     Filter <span data-events-target="filterCount"></span>
   </button>
 
   <div class="hidden md:block" data-events-target="filterPanel">
-    <div class="flex flex-wrap mt-2">
-      <button type="button" class="rounded px-2 py-1 m-1 border font-bold" data-events-target="allChip" data-action="events#showAll">Alle</button>
-      <% Event::ORGANIZATIONS_BY_TYPE.each do |type, organizations| %>
-        <button type="button" class="rounded px-2 py-1 m-1 border font-bold" data-events-target="categoryChip" data-action="events#selectCategory" data-organizations="<%= organizations.to_json %>"><%= type %></button>
-      <% end %>
-    </div>
-
     <div class="flex flex-wrap">
       <% Event::ORGANIZATIONS.each do |organization| %>
         <button type="button" class="rounded px-2 py-1 m-1 border <%= organization_color(organization) %>" data-events-target="chip" data-action="events#toggleOrganization" data-organization="<%= organization %>"><%= organization %></button>
