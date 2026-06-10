@@ -22,5 +22,8 @@
     <main class="container mx-auto mt-4 px-4 flex">
       <%= yield %>
     </main>
+    <footer class="container mx-auto px-4 mt-8 mb-12 text-sm text-gray-500">
+      <%= link_to "Impressum", imprint_path, class: "underline" %>
+    </footer>
   </body>
 </html>

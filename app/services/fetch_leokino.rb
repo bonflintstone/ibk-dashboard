@@ -1,21 +1,30 @@
 class FetchLeokino
+  BASE_URL = "https://www.leokino.at"
+
+  # The program is loaded via AJAX fragments, one day per request.
   def self.call
-    response = HTTParty.get("https://leokino.at")
-    document = Nokogiri::HTML(response.body)
+    (Date.today..Date.today + 6).each do |date|
+      response = HTTParty.get("#{BASE_URL}/ajax/programm.php", query: { dateSet: date.to_s })
+      document = Nokogiri::HTML(response.body)
 
-    document.css("table table td:first-child table tr").map do |movie_row|
-      date = movie_row.css("td:first-child > span").text.strip
-      next unless date.present?
+      document.css(".colpadding1").each do |screening|
+        date_text = screening.css("h6.left").text[/\d\d\.\d\d\.\d{4}/]
+        time = screening.css("h6.right").text.strip.sub(".", ":")
+        title_link = screening.css("h4.filmtitel a").first
+        next if date_text.blank? || time.blank? || title_link.blank?
 
-      time = movie_row.css("td:first-child h3:first-of-type").text.strip.sub(".", ":")
-      datetime = Time.zone.parse("#{date} #{time}")
+        datetime = Time.zone.parse("#{Date.parse(date_text).iso8601} #{time}")
+        name = title_link.text.strip
+        link = URI.join(BASE_URL, title_link["href"]).to_s
 
-      location = movie_row.css("td:first-child h3:last-of-type").text.strip
-      name = movie_row.css("td:last-child h3 a").children.map(&:text).compact_blank.join(" - ")
-      link = "https://leokino.at" + movie_row.css("td:last-child h3 a").attr("href").value
-      description = movie_row.css("td:last-child p:last-child").text.sub("[ mehr ]", "").strip
+        # Bare text nodes inside the bottom h6: hall, "R: director", version (OmU/OV)
+        details = screening.css(".programmBottom h6").first
+          &.children&.select(&:text?)&.map { |node| node.text.strip }&.compact_blank || []
+        location = details.first.presence || "Leokino"
+        description = details.drop(1).join(", ")
 
-      Event.create(datetime:, location:, name:, link:, description:, organization: "Leokino", source: :scraper)
+        Event.create(datetime:, location:, name:, link:, description:, organization: "Leokino", source: :scraper)
+      end
     end
   end
 end

@@ -23,7 +23,7 @@ Jobs run on [Solid Queue](https://github.com/rails/solid_queue), which runs insi
 
 https://ibk-dashboard.at/status shows:
 
-- per-scraper health: every `RefetchAll` run records a `ScraperRun` per scraper (success/failure, scraped event count, duration, error class + message). A failing scraper does not abort the others, and its old events are kept (per-scraper transaction) instead of leaving the venue empty.
+- per-scraper health: every `RefetchAll` run records a `ScraperRun` per scraper (success/failure, scraped event count, duration, error class + message). A failing scraper does not abort the others, and its old events are kept (per-scraper transaction) instead of leaving the venue empty. A scraper returning 0 events counts as failed (usually a site redesign broke the selectors).
 - Solid Queue health: supervisor/worker/dispatcher/scheduler heartbeats, the recurring schedule, and failed jobs with errors.
 - weekly unique visitors (see below).
 

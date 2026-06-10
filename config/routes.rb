@@ -15,4 +15,5 @@ Rails.application.routes.draw do
   resources :events, only: %i[new create]
 
   get "status" => "status#show"
+  get "impressum" => "pages#imprint", as: :imprint
 end
