@@ -29,7 +29,7 @@
 
   <% events_by_date = @events.group_by(&:date) %>
 
-  <nav class="sticky top-0 z-10 bg-white flex overflow-x-auto whitespace-nowrap py-2 mt-2 border-b">
+  <nav class="no-scrollbar sticky top-0 z-10 bg-white flex overflow-x-auto whitespace-nowrap py-2 mt-2 border-b">
     <% events_by_date.each_key do |date| %>
       <a href="#date-<%= date.iso8601 %>" class="rounded px-2 py-1 mx-1 border shrink-0" data-events-target="dateLink">
         <%= date == Date.today ? "Heute" : l(date, format: "%a %d.%m.") %>
