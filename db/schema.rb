@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2024_10_31_101411) do
+ActiveRecord::Schema[8.0].define(version: 2026_06_10_132002) do
   create_table "events", force: :cascade do |t|
     t.string "name"
     t.string "location"
@@ -28,5 +28,25 @@ ActiveRecord::Schema[8.0].define(version: 2024_10_31_101411) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "new_event_count"
+  end
+
+  create_table "scraper_runs", force: :cascade do |t|
+    t.string "scraper", null: false
+    t.integer "status", default: 0, null: false
+    t.string "error_class"
+    t.text "error_message"
+    t.integer "events_count"
+    t.integer "duration_ms"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["scraper", "created_at"], name: "index_scraper_runs_on_scraper_and_created_at"
+  end
+
+  create_table "visits", force: :cascade do |t|
+    t.date "week", null: false
+    t.string "visitor_digest", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["week", "visitor_digest"], name: "index_visits_on_week_and_visitor_digest", unique: true
   end
 end

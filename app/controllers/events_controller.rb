@@ -1,4 +1,6 @@
 class EventsController < ApplicationController
+  after_action :track_visit, only: :index
+
   def index
     selected_organizations = params[:organizations].presence || Event::ORGANIZATIONS
 
@@ -26,6 +28,12 @@ class EventsController < ApplicationController
   end
 
   private
+
+  def track_visit
+    Visit.track(request)
+  rescue StandardError => error
+    Rails.logger.warn("Visit tracking failed: #{error.class}: #{error.message}")
+  end
 
   def event_params
     params.require(:event).permit(:datetime, :location, :name, :link, :description, :organization)

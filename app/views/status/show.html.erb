@@ -1,0 +1,145 @@
+<div>
+  <h1 class="text-3xl font-bold">Status</h1>
+
+  <h2 class="text-xl font-bold mt-6 mb-2">Scrapers</h2>
+
+  <% if @refetch_event %>
+    <p class="mb-3">
+      Last full refetch:
+      <span class="font-bold"><%= @refetch_event.created_at.strftime("%d.%m.%Y %H:%M:%S") %></span>
+      (<%= @refetch_event.new_event_count %> events)
+    </p>
+  <% end %>
+
+  <table class="w-full text-left border">
+    <thead>
+      <tr class="border-b">
+        <th class="p-2">Scraper</th>
+        <th class="p-2">Status</th>
+        <th class="p-2">Last run</th>
+        <th class="p-2">Events</th>
+        <th class="p-2">Error</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @scrapers.each do |scraper, runs| %>
+        <% last_run = runs[:last_run] %>
+        <tr class="border-b align-top">
+          <td class="p-2 font-bold"><%= scraper %></td>
+          <td class="p-2">
+            <% if last_run.nil? %>
+              <span class="rounded px-2 py-1 bg-gray-200">no runs yet</span>
+            <% elsif last_run.success? %>
+              <span class="rounded px-2 py-1 bg-green-200">OK</span>
+            <% else %>
+              <span class="rounded px-2 py-1 bg-red-200">FAILING</span>
+            <% end %>
+          </td>
+          <td class="p-2">
+            <%= last_run&.created_at&.strftime("%d.%m.%Y %H:%M") %>
+            <% if last_run&.duration_ms %>
+              <span class="text-gray-500">(<%= last_run.duration_ms %> ms)</span>
+            <% end %>
+          </td>
+          <td class="p-2"><%= last_run&.events_count %></td>
+          <td class="p-2">
+            <% if last_run&.failure? %>
+              <p class="font-mono text-sm"><%= last_run.error_class %>: <%= last_run.error_message %></p>
+              <% if runs[:last_success] %>
+                <p class="text-sm text-gray-500">Last success: <%= runs[:last_success].created_at.strftime("%d.%m.%Y %H:%M") %></p>
+              <% end %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <h2 class="text-xl font-bold mt-6 mb-2">Solid Queue</h2>
+
+  <% if @queue_processes.nil? %>
+    <p>Solid Queue database not available in this environment.</p>
+  <% else %>
+    <table class="w-full text-left border mb-3">
+      <thead>
+        <tr class="border-b">
+          <th class="p-2">Process</th>
+          <th class="p-2">Last heartbeat</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @queue_processes.each do |process| %>
+          <% stale = process.last_heartbeat_at < 5.minutes.ago %>
+          <tr class="border-b">
+            <td class="p-2 font-bold"><%= process.kind %></td>
+            <td class="p-2 <%= stale ? "bg-red-200" : "" %>">
+              <%= process.last_heartbeat_at.strftime("%d.%m.%Y %H:%M:%S") %>
+              <%= "(stale!)" if stale %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <% if @recurring_tasks.present? %>
+      <p class="mb-3">
+        Recurring tasks:
+        <% @recurring_tasks.each do |task| %>
+          <span class="rounded px-2 py-1 m-1 border"><%= task.key %> (<%= task.schedule %>)</span>
+        <% end %>
+      </p>
+    <% end %>
+
+    <% if @failed_jobs.present? %>
+      <h3 class="font-bold mb-2">Failed jobs</h3>
+      <table class="w-full text-left border">
+        <thead>
+          <tr class="border-b">
+            <th class="p-2">Job</th>
+            <th class="p-2">Failed at</th>
+            <th class="p-2">Error</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @failed_jobs.each do |failed| %>
+            <tr class="border-b align-top">
+              <td class="p-2 font-bold"><%= failed.job&.class_name %></td>
+              <td class="p-2"><%= failed.created_at.strftime("%d.%m.%Y %H:%M") %></td>
+              <td class="p-2 font-mono text-sm"><%= failed.exception_class %>: <%= failed.message.to_s.truncate(300) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p>No failed jobs.</p>
+    <% end %>
+  <% end %>
+
+  <h2 class="text-xl font-bold mt-6 mb-2">Unique visitors per week</h2>
+
+  <p class="text-sm text-gray-500 mb-2">
+    Counted via weekly rotating SHA256 digest of IP + user agent — no IP addresses are stored,
+    visitors cannot be tracked across weeks.
+  </p>
+
+  <% if @weekly_visitors.empty? %>
+    <p>No visits recorded yet.</p>
+  <% else %>
+    <table class="text-left border">
+      <thead>
+        <tr class="border-b">
+          <th class="p-2">Week of</th>
+          <th class="p-2">Unique visitors</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @weekly_visitors.each do |week, count| %>
+          <tr class="border-b">
+            <td class="p-2"><%= week.strftime("%d.%m.%Y") %></td>
+            <td class="p-2 font-bold"><%= count %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>

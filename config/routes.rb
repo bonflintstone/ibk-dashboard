@@ -13,4 +13,6 @@ Rails.application.routes.draw do
   root "events#index"
 
   resources :events, only: %i[new create]
+
+  get "status" => "status#show"
 end

@@ -19,6 +19,24 @@ Jobs run on [Solid Queue](https://github.com/rails/solid_queue), which runs insi
 - `refetch_events`: runs `RefetchJob` (→ `RefetchAll`) every day at 4am
 - `clear_solid_queue_finished_jobs`: hourly cleanup of finished jobs
 
+### Monitoring
+
+https://ibk-dashboard.at/status shows:
+
+- per-scraper health: every `RefetchAll` run records a `ScraperRun` per scraper (success/failure, scraped event count, duration, error class + message). A failing scraper does not abort the others, and its old events are kept (per-scraper transaction) instead of leaving the venue empty.
+- Solid Queue health: supervisor/worker/dispatcher/scheduler heartbeats, the recurring schedule, and failed jobs with errors.
+- weekly unique visitors (see below).
+
+### Analytics
+
+Privacy-friendly unique visitor counting, no cookies, no external service. Each dashboard request stores only a SHA256 digest of `(secret_key_base, week, ip, user agent)` (`Visit.track`). IP addresses are never stored, the digest rotates weekly so visitors can't be tracked across weeks, and obvious bots are skipped.
+
+### Tests
+
+```sh
+bundle exec rspec
+```
+
 ### Development
 
 ```sh
