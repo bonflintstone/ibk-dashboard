@@ -36,12 +36,10 @@ export default class extends Controller {
     this.apply()
   }
 
-  toggleCategory(event) {
+  // Categories behave like tabs: exactly one category's venues, or "Alle".
+  selectCategory(event) {
     const organizations = JSON.parse(event.currentTarget.dataset.organizations)
-    const allSelected = organizations.every((organization) => this.selected.has(organization))
-    organizations.forEach((organization) => {
-      allSelected ? this.selected.delete(organization) : this.selected.add(organization)
-    })
+    this.selected = new Set(organizations)
     this.apply()
   }
 
@@ -80,7 +78,9 @@ export default class extends Controller {
 
     this.categoryChipTargets.forEach((chip) => {
       const organizations = JSON.parse(chip.dataset.organizations)
-      this.markChip(chip, organizations.every((organization) => this.selected.has(organization)))
+      const exactMatch = organizations.length === this.selected.size &&
+        organizations.every((organization) => this.selected.has(organization))
+      this.markChip(chip, exactMatch)
     })
 
     this.markChip(this.allChipTarget, showEverything)

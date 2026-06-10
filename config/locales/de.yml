@@ -8,3 +8,11 @@ de:
       - Donnerstag
       - Freitag
       - Samstag
+    abbr_day_names:
+      - So
+      - Mo
+      - Di
+      - Mi
+      - Do
+      - Fr
+      - Sa

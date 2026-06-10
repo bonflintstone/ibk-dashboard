@@ -16,7 +16,7 @@
     <div class="flex flex-wrap mt-2">
       <button type="button" class="rounded px-2 py-1 m-1 border font-bold" data-events-target="allChip" data-action="events#showAll">Alle</button>
       <% Event::ORGANIZATIONS_BY_TYPE.each do |type, organizations| %>
-        <button type="button" class="rounded px-2 py-1 m-1 border font-bold" data-events-target="categoryChip" data-action="events#toggleCategory" data-organizations="<%= organizations.to_json %>"><%= type %></button>
+        <button type="button" class="rounded px-2 py-1 m-1 border font-bold" data-events-target="categoryChip" data-action="events#selectCategory" data-organizations="<%= organizations.to_json %>"><%= type %></button>
       <% end %>
     </div>
 
