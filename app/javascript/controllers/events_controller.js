@@ -78,9 +78,7 @@ export default class extends Controller {
     })
 
     this.chipTargets.forEach((chip) => {
-      const active = this.selected.has(chip.dataset.organization)
-      this.markChip(chip, active)
-      chip.classList.toggle("opacity-50", !showEverything && !active)
+      this.markChip(chip, this.selected.has(chip.dataset.organization))
     })
 
     this.categoryChipTargets.forEach((chip) => {
@@ -101,8 +99,10 @@ export default class extends Controller {
   }
 
   markChip(chip, active) {
-    chip.classList.toggle("ring-2", active)
-    chip.classList.toggle("ring-black", active)
+    chip.classList.toggle("bg-gray-900", active)
+    chip.classList.toggle("border-gray-900", active)
+    chip.classList.toggle("text-white", active)
+    chip.classList.toggle("bg-white", !active)
   }
 
   persist() {
