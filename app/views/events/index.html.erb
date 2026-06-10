@@ -9,10 +9,12 @@
     Neue Events können hier vorgeschlagen werden: <%= link_to("Neues Event", new_event_path, class: "underline") %>
   </p>
 
-  <p>
-    Last updated:
-    <span class="font-bold"><%= @refetch_event.created_at.strftime("%d.%m.%Y %H:%M:%S") %></span>
-  </p>
+  <% if @refetch_event %>
+    <p>
+      Last updated:
+      <span class="font-bold"><%= @refetch_event.created_at.strftime("%d.%m.%Y %H:%M:%S") %></span>
+    </p>
+  <% end %>
 
   <div class="flex flex-wrap">
     <%= link_to "All", root_path, class: "gap-1 rounded px-2 py-1 m-1 border" %>
