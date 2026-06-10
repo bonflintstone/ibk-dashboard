@@ -9,21 +9,28 @@ export default class extends Controller {
     "event", "dateGroup", "dateLink", "chip", "categoryChip", "allChip",
     "filterPanel", "filterCount", "emptyMessage"
   ]
+  static values = { defaultSelection: Array }
 
   connect() {
     this.selected = new Set(this.initialSelection())
     this.apply()
   }
 
+  // URL beats the user's saved filters, saved filters beat the default.
   initialSelection() {
     const fromUrl = new URLSearchParams(window.location.search).getAll("organizations[]")
     if (fromUrl.length > 0) return fromUrl
 
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []
-    } catch {
-      return []
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored !== null) {
+      try {
+        return JSON.parse(stored) || []
+      } catch {
+        return []
+      }
     }
+
+    return this.defaultSelectionValue
   }
 
   toggleOrganization(event) {

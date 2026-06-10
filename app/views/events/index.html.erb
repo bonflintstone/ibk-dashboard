@@ -1,4 +1,4 @@
-<div class="w-full" data-controller="events">
+<div class="w-full" data-controller="events" data-events-default-selection-value="<%= Event::ORGANIZATIONS_BY_TYPE[:'Musik und Kultur'].to_json %>">
   <h1 class="text-3xl font-bold">IBK Dashboard</h1>
 
   <% if @refetch_event %>
@@ -9,20 +9,20 @@
   <% end %>
 
   <div class="flex flex-wrap mt-2">
-    <button type="button" class="rounded px-2 py-1 m-1 border font-bold" data-events-target="allChip" data-action="events#showAll">Alle</button>
+    <button type="button" class="cursor-pointer rounded px-2 py-1 m-1 border font-bold" data-events-target="allChip" data-action="events#showAll">Alle</button>
     <% Event::ORGANIZATIONS_BY_TYPE.each do |type, organizations| %>
-      <button type="button" class="rounded px-2 py-1 m-1 border font-bold" data-events-target="categoryChip" data-action="events#selectCategory" data-organizations="<%= organizations.to_json %>"><%= type %></button>
+      <button type="button" class="cursor-pointer rounded px-2 py-1 m-1 border font-bold" data-events-target="categoryChip" data-action="events#selectCategory" data-organizations="<%= organizations.to_json %>"><%= type %></button>
     <% end %>
   </div>
 
-  <button type="button" class="md:hidden rounded px-2 py-1 m-1 border" data-action="events#toggleFilters">
+  <button type="button" class="md:hidden cursor-pointer rounded px-2 py-1 m-1 border" data-action="events#toggleFilters">
     Filter <span data-events-target="filterCount"></span>
   </button>
 
   <div class="hidden md:block" data-events-target="filterPanel">
     <div class="flex flex-wrap">
       <% Event::ORGANIZATIONS.each do |organization| %>
-        <button type="button" class="rounded px-2 py-1 m-1 border <%= organization_color(organization) %>" data-events-target="chip" data-action="events#toggleOrganization" data-organization="<%= organization %>"><%= organization %></button>
+        <button type="button" class="cursor-pointer rounded px-2 py-1 m-1 border <%= organization_color(organization) %>" data-events-target="chip" data-action="events#toggleOrganization" data-organization="<%= organization %>"><%= organization %></button>
       <% end %>
     </div>
   </div>
