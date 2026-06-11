@@ -1,7 +1,8 @@
 <% input_classes = "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-gray-900 focus:outline-none" %>
 <% label_classes = "mb-1 block text-sm font-medium text-gray-700" %>
 
-<%= form_with(model: event, class: "mt-4 w-full flex flex-col gap-3 items-stretch", data: { turbo: false }) do |f| %>
+<%= form_with(model: event, class: "mt-4 w-full flex flex-col gap-3 items-stretch",
+              data: { controller: "event-form", "event-form-extract-url-value": extract_events_path, turbo: false }) do |f| %>
   <% if event.errors.any? %>
     <div class="rounded-lg border border-red-300 bg-red-100 px-4 py-2 text-sm text-red-800">
       <% event.errors.full_messages.each do |message| %>
@@ -11,33 +12,50 @@
   <% end %>
 
   <div>
-    <%= f.label(:name, "Name", class: label_classes) %>
-    <%= f.text_field(:name, class: input_classes, required: true) %>
+    <%= f.label(:link, "Link zur Veranstaltung", class: label_classes) %>
+    <%= f.url_field(:link, class: input_classes, required: true, placeholder: "https://…",
+                    data: { "event-form-target": "link" }) %>
   </div>
 
-  <div>
-    <%= f.label(:link, "Link", class: label_classes) %>
-    <%= f.url_field(:link, class: input_classes, required: true, placeholder: "https://…") %>
+  <div class="flex items-center gap-3">
+    <button type="button" class="rounded-lg bg-blue-500 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 cursor-pointer disabled:opacity-50"
+            data-action="event-form#load" data-event-form-target="loadButton">
+      Aus Link befüllen
+    </button>
+    <button type="button" class="cursor-pointer text-sm text-gray-500 underline"
+            data-action="event-form#manual" data-event-form-target="manualButton">
+      manuell ausfüllen
+    </button>
   </div>
+  <p class="hidden text-sm text-gray-500" data-event-form-target="status"></p>
 
-  <div>
-    <%= f.label(:location, "Location", class: label_classes) %>
-    <%= f.text_field(:location, class: input_classes, required: true) %>
+  <div class="hidden flex-col gap-3" data-event-form-target="details">
+    <div>
+      <%= f.label(:name, "Name", class: label_classes) %>
+      <%= f.text_field(:name, class: input_classes, required: true, data: { "event-form-target": "name" }) %>
+    </div>
+
+    <div>
+      <%= f.label(:location, "Location", class: label_classes) %>
+      <%= f.text_field(:location, class: input_classes, required: true, data: { "event-form-target": "location" }) %>
+    </div>
+
+    <div>
+      <%= f.label(:datetime, "Datum & Uhrzeit", class: label_classes) %>
+      <%= f.datetime_field(:datetime, class: input_classes, required: true,
+                           min: Time.current.strftime("%Y-%m-%dT%H:%M"),
+                           data: { "event-form-target": "datetime" }) %>
+    </div>
+
+    <div>
+      <%= f.label(:description, "Beschreibung", class: label_classes) %>
+      <%= f.text_area(:description, class: "#{input_classes} min-h-20", data: { "event-form-target": "description" }) %>
+    </div>
+
+    <% if Hcaptcha.site_key.present? %>
+      <div class="h-captcha" data-sitekey="<%= Hcaptcha.site_key %>"></div>
+    <% end %>
+
+    <%= f.submit("Speichern", class: "w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg cursor-pointer") %>
   </div>
-
-  <div>
-    <%= f.label(:datetime, "Datum & Uhrzeit", class: label_classes) %>
-    <%= f.datetime_field(:datetime, class: input_classes, required: true) %>
-  </div>
-
-  <div>
-    <%= f.label(:description, "Beschreibung", class: label_classes) %>
-    <%= f.text_area(:description, class: "#{input_classes} min-h-20") %>
-  </div>
-
-  <% if Hcaptcha.site_key.present? %>
-    <div class="h-captcha" data-sitekey="<%= Hcaptcha.site_key %>"></div>
-  <% end %>
-
-  <%= f.submit("Speichern", class: "w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg cursor-pointer") %>
 <% end %>

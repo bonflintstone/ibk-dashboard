@@ -69,5 +69,34 @@ RSpec.describe "Events page" do
       expect(response).to have_http_status(:unprocessable_entity)
       expect(Event.count).to eq(0)
     end
+
+    it "rejects submissions with a past date" do
+      post events_path, params: { event: { name: "Altes Event", location: "Bogen 30",
+                                           link: "https://example.com", datetime: 1.day.ago.iso8601 } }
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(Event.count).to eq(0)
+    end
+  end
+
+  describe "extracting fields from a link" do
+    it "returns the extracted fields as JSON" do
+      allow(ExtractEventFromLink).to receive(:call).with("https://treibhaus.at/x")
+        .and_return("name" => "Konzert", "location" => "Treibhaus", "datetime" => "", "description" => "")
+
+      post extract_events_path, params: { link: "https://treibhaus.at/x" }, as: :json
+
+      expect(response).to have_http_status(:success)
+      expect(response.parsed_body).to include("name" => "Konzert", "location" => "Treibhaus")
+    end
+
+    it "returns an error when extraction fails" do
+      allow(ExtractEventFromLink).to receive(:call).and_raise("boom")
+
+      post extract_events_path, params: { link: "https://x.test" }, as: :json
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response.parsed_body["error"]).to be_present
+    end
   end
 end

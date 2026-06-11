@@ -56,4 +56,23 @@ RSpec.describe Event do
       expect(build_event(category: "Party").display_category).to eq("Party")
     end
   end
+
+  describe "datetime guard" do
+    def build_submission(source:, datetime:)
+      Event.new(name: "Event", location: "Treibhaus", organization: "Treibhaus",
+                link: "https://example.com", source:, datetime:)
+    end
+
+    it "rejects past datetimes from the webform" do
+      expect(build_submission(source: :webform, datetime: 1.day.ago)).not_to be_valid
+    end
+
+    it "accepts future datetimes from the webform" do
+      expect(build_submission(source: :webform, datetime: 1.day.from_now)).to be_valid
+    end
+
+    it "lets scrapers import events on their start day" do
+      expect(build_submission(source: :scraper, datetime: 1.day.ago)).to be_valid
+    end
+  end
 end

@@ -42,3 +42,6 @@ gem "rails_admin", "~> 3.3"
 
 gem "rails-i18n", "~> 8.1"
 gem "rails_admin-i18n", "~> 1.20"
+
+# Web dashboard for Solid Queue jobs (admin-gated at /jobs)
+gem "mission_control-jobs", "~> 1.0"

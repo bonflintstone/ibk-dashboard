@@ -190,6 +190,16 @@ GEM
     mini_portile2 (2.8.9)
     minitest (6.0.1)
       prism (~> 1.5)
+    mission_control-jobs (1.1.0)
+      actioncable (>= 7.1)
+      actionpack (>= 7.1)
+      activejob (>= 7.1)
+      activerecord (>= 7.1)
+      importmap-rails (>= 1.2.1)
+      irb (~> 1.13)
+      railties (>= 7.1)
+      stimulus-rails
+      turbo-rails
     msgpack (1.8.0)
     multi_xml (0.8.1)
       bigdecimal (>= 3.1, < 5)
@@ -448,6 +458,7 @@ DEPENDENCIES
   importmap-rails
   jbuilder
   kamal
+  mission_control-jobs (~> 1.0)
   propshaft
   puma (>= 5.0)
   rails (~> 8.0.0)

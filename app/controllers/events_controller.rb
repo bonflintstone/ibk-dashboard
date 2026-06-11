@@ -21,6 +21,15 @@ class EventsController < ApplicationController
     @event = Event.new
   end
 
+  # Fetches an event page and returns extracted form fields as JSON so the
+  # submitter can review and correct them before submitting.
+  def extract
+    render json: ExtractEventFromLink.call(params[:link])
+  rescue StandardError => error
+    Rails.logger.warn("ExtractEventFromLink failed: #{error.class}: #{error.message}")
+    render json: { error: "Konnte die Seite nicht auslesen. Bitte fülle die Felder manuell aus." }, status: :unprocessable_entity
+  end
+
   def create
     unless Hcaptcha.verify?(params["h-captcha-response"], remote_ip: request.remote_ip)
       redirect_to root_path, flash: { alert: "Captcha-Prüfung fehlgeschlagen. Bitte versuche es erneut." }
