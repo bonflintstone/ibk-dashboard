@@ -65,9 +65,9 @@ class FetchInstagram
   def self.fetch_posts(username)
     response = nil
     MAX_ATTEMPTS.times do |attempt|
-      response = HTTParty.get(
+      response = Typhoeus.get(
         PROFILE_URL,
-        query: { username: },
+        params: { username: },
         headers: { "x-ig-app-id" => APP_ID, "User-Agent" => USER_AGENT },
         **proxy_options
       )
@@ -162,7 +162,7 @@ class FetchInstagram
   # so images are downloaded here and sent inline. A failed download
   # only drops the image; the caption is still extracted from.
   def self.image_block(image_url)
-    response = HTTParty.get(image_url, headers: { "User-Agent" => USER_AGENT }, **proxy_options)
+    response = Typhoeus.get(image_url, headers: { "User-Agent" => USER_AGENT }, **proxy_options)
     return nil unless response.code == 200
 
     {
@@ -175,15 +175,15 @@ class FetchInstagram
     }
   end
 
-  # Meta rejects requests from the server's datacenter IP at the edge
-  # (unconditional 429 with an empty body), so all Instagram traffic goes
-  # through a rotating residential proxy when one is configured.
+  # Meta blocks Instagram requests on two independent layers: Ruby
+  # net/http's TLS fingerprint is rejected at the edge (empty 429, any IP)
+  # and datacenter IPs are walled off at the application layer (401).
+  # Hence Typhoeus (libcurl's TLS handshake passes) through a residential
+  # proxy when one is configured.
   def self.proxy_options
     return {} if ENV["DECODO_URL"].blank?
 
-    host, port = ENV["DECODO_URL"].split(":")
-    user, password = ENV["DECODO_AUTH"].to_s.split(":")
-    { http_proxyaddr: host, http_proxyport: port.to_i, http_proxyuser: user, http_proxypass: password }
+    { proxy: "http://#{ENV["DECODO_URL"]}", proxyuserpwd: ENV["DECODO_AUTH"] }
   end
 
   def self.anthropic

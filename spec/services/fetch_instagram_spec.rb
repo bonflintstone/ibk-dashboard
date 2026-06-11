@@ -60,10 +60,10 @@ RSpec.describe FetchInstagram do
   let(:messages) { double("messages") }
 
   before do
-    allow(HTTParty).to receive(:get)
+    allow(Typhoeus).to receive(:get)
       .with(FetchInstagram::PROFILE_URL, anything)
       .and_return(double(code: 200, body: instagram_json))
-    allow(HTTParty).to receive(:get)
+    allow(Typhoeus).to receive(:get)
       .with(%r{https://cdn\.example\.com/}, anything)
       .and_return(double(code: 200, body: "JPEGDATA", headers: { "content-type" => "image/jpeg" }))
 
@@ -148,14 +148,13 @@ RSpec.describe FetchInstagram do
 
     FetchInstagram.call(profile)
 
-    proxy = { http_proxyaddr: "gate.example.com", http_proxyport: 7000,
-              http_proxyuser: "user", http_proxypass: "pass" }
-    expect(HTTParty).to have_received(:get).with(FetchInstagram::PROFILE_URL, hash_including(proxy))
-    expect(HTTParty).to have_received(:get).with(%r{https://cdn\.example\.com/}, hash_including(proxy)).twice
+    proxy = { proxy: "http://gate.example.com:7000", proxyuserpwd: "user:pass" }
+    expect(Typhoeus).to have_received(:get).with(FetchInstagram::PROFILE_URL, hash_including(proxy))
+    expect(Typhoeus).to have_received(:get).with(%r{https://cdn\.example\.com/}, hash_including(proxy)).twice
   end
 
   it "raises when Instagram does not respond with 200" do
-    allow(HTTParty).to receive(:get).and_return(double(code: 403, body: ""))
+    allow(Typhoeus).to receive(:get).and_return(double(code: 403, body: ""))
 
     expect { FetchInstagram.call(profile) }.to raise_error(/403/)
   end
@@ -163,7 +162,7 @@ RSpec.describe FetchInstagram do
   it "retries with backoff when Instagram rate-limits" do
     allow(FetchInstagram).to receive(:pause)
     rate_limited = double(code: 429, body: "", headers: { "retry-after" => "10" })
-    allow(HTTParty).to receive(:get)
+    allow(Typhoeus).to receive(:get)
       .with(FetchInstagram::PROFILE_URL, anything)
       .and_return(rate_limited, rate_limited, double(code: 200, body: instagram_json))
 
@@ -177,7 +176,7 @@ RSpec.describe FetchInstagram do
   it "gives up after repeated rate limiting" do
     allow(FetchInstagram).to receive(:pause)
     rate_limited = double(code: 429, body: "", headers: {})
-    allow(HTTParty).to receive(:get)
+    allow(Typhoeus).to receive(:get)
       .with(FetchInstagram::PROFILE_URL, anything)
       .and_return(rate_limited)
 

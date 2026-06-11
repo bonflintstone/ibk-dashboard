@@ -3,6 +3,7 @@ source "https://rubygems.org"
 gem "bootsnap", require: false
 gem "dotenv-rails", "~> 3.1"
 gem "httparty", "~> 0.22.0"
+gem "typhoeus", "~> 1.4" # Instagram scraping: Meta blocks Ruby net/http's TLS fingerprint
 gem "importmap-rails"
 gem "jbuilder"
 gem "propshaft"
