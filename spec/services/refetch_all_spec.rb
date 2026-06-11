@@ -1,6 +1,8 @@
 require "rails_helper"
 
 RSpec.describe RefetchAll do
+  before { allow(CategorizeEvents).to receive(:call) }
+
   def create_event(organization, name: "Event #{organization}")
     Event.create!(
       name:, location: organization, organization:,
@@ -44,10 +46,32 @@ RSpec.describe RefetchAll do
     expect(RefetchEvent.last.new_event_count).to eq(RefetchAll::SCRAPERS.size)
   end
 
+  it "categorizes new events per organization and sweeps the rest at the end" do
+    RefetchAll::SCRAPERS.each do |organization, fetcher|
+      allow(fetcher).to receive(:call) { create_event(organization) }
+    end
+
+    RefetchAll.call
+
+    # one call per organization plus the final sweep for leftovers
+    expect(CategorizeEvents).to have_received(:call).exactly(RefetchAll::SCRAPERS.size + 1).times
+  end
+
+  it "keeps the run going when categorization fails" do
+    allow(CategorizeEvents).to receive(:call).and_raise("Claude unavailable")
+    RefetchAll::SCRAPERS.each do |organization, fetcher|
+      allow(fetcher).to receive(:call) { create_event(organization) }
+    end
+
+    RefetchAll.call
+
+    expect(ScraperRun.where(status: :success).count).to eq(RefetchAll::SCRAPERS.size)
+    expect(RefetchEvent.last).to be_present
+  end
+
   it "runs FetchInstagram for each Instagram profile" do
     profile = InstagramProfile.create!(
-      username: "arche.ahoi", organization: "Arche Ahoi",
-      location: "Bogen 30", category: "Musik und Kultur"
+      username: "arche.ahoi", organization: "Arche Ahoi", location: "Bogen 30"
     )
     RefetchAll::SCRAPERS.each do |organization, fetcher|
       allow(fetcher).to receive(:call) { create_event(organization) }
@@ -62,9 +86,7 @@ RSpec.describe RefetchAll do
 
   it "pauses between Instagram profiles to avoid rate limiting" do
     %w[arche.ahoi pembau.art].each do |username|
-      InstagramProfile.create!(
-        username:, organization: username, location: "Innsbruck", category: "Musik und Kultur"
-      )
+      InstagramProfile.create!(username:, organization: username, location: "Innsbruck")
     end
     RefetchAll::SCRAPERS.each do |organization, fetcher|
       allow(fetcher).to receive(:call) { create_event(organization) }
@@ -79,8 +101,7 @@ RSpec.describe RefetchAll do
 
   it "records a failure for a profile but continues when FetchInstagram raises" do
     InstagramProfile.create!(
-      username: "arche.ahoi", organization: "Arche Ahoi",
-      location: "Bogen 30", category: "Musik und Kultur"
+      username: "arche.ahoi", organization: "Arche Ahoi", location: "Bogen 30"
     )
     RefetchAll::SCRAPERS.each do |organization, fetcher|
       allow(fetcher).to receive(:call) { create_event(organization) }

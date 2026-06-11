@@ -1,4 +1,4 @@
-<div class="w-full max-w-2xl mx-auto" data-controller="events" data-events-default-selection-value="<%= Event.organizations_by_type[:'Musik und Kultur'].to_json %>">
+<div class="w-full max-w-2xl mx-auto" data-controller="events">
   <h1 class="text-3xl font-bold tracking-tight">IBK Dashboard</h1>
 
   <% if @refetch_event %>
@@ -8,19 +8,24 @@
   <% end %>
 
   <% events_by_date = @events.group_by(&:date) %>
+  <%# Chips reflect what is actually on the page: only categories with
+      upcoming events, and per category only the venues hosting them. %>
+  <% organizations_by_category = Event::CATEGORIES.index_with do |category|
+       @events.select { |event| event.display_category == category }.map(&:organization).uniq.sort
+     end.reject { |_category, organizations| organizations.empty? } %>
 
   <div class="sticky top-0 z-10 -mx-4 bg-gray-50 px-4 pt-4" data-events-target="stickyHeader">
     <div class="flex flex-wrap gap-2">
       <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-events-target="allChip" data-action="events#showAll">Alle</button>
-      <% Event.organizations_by_type.each do |type, organizations| %>
-        <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-events-target="categoryChip" data-action="events#selectCategory" data-category="<%= type %>" data-organizations="<%= organizations.to_json %>"><%= type %></button>
+      <% organizations_by_category.each_key do |category| %>
+        <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-events-target="categoryChip" data-action="events#selectCategory" data-category="<%= category %>"><%= category %></button>
       <% end %>
     </div>
 
     <div class="hidden mt-2 flex flex-wrap gap-2" data-events-target="venuePanel">
-      <% Event.organizations_by_type.each do |type, organizations| %>
+      <% organizations_by_category.each do |category, organizations| %>
         <% organizations.each do |organization| %>
-          <button type="button" class="hidden cursor-pointer flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1 text-sm" data-events-target="chip" data-action="events#toggleOrganization" data-organization="<%= organization %>" data-category="<%= type %>">
+          <button type="button" class="hidden cursor-pointer flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1 text-sm" data-events-target="chip" data-action="events#toggleOrganization" data-organization="<%= organization %>" data-category="<%= category %>">
             <span class="inline-block h-2 w-2 rounded-full <%= organization_accent_color(organization) %>"></span><%= organization %>
           </button>
         <% end %>
@@ -42,7 +47,7 @@
       <h3 class="sticky top-(--filter-height,3.5rem) bg-gray-50 pt-4 pb-2 text-sm font-semibold uppercase tracking-wide text-gray-500"><%= l(date, format: "%A %d. %B") %></h3>
 
       <% events.each do |event| %>
-        <%= link_to event.link, target: "_blank", class: "block mb-3", data: { events_target: "event", organization: event.organization } do %>
+        <%= link_to event.link, target: "_blank", class: "block mb-3", data: { events_target: "event", organization: event.organization, category: event.display_category } do %>
           <div class="flex gap-3 rounded-xl bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
             <div class="w-12 shrink-0 font-bold tabular-nums"><%= event.datetime.strftime("%H:%M") %></div>
             <div class="min-w-0 flex-1">

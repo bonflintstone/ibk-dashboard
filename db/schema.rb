@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_06_11_074831) do
+ActiveRecord::Schema[8.0].define(version: 2026_06_11_103426) do
   create_table "events", force: :cascade do |t|
     t.string "name"
     t.string "location"
@@ -22,13 +22,13 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_11_074831) do
     t.datetime "updated_at", null: false
     t.datetime "approved_at"
     t.integer "source", default: 0
+    t.string "category"
   end
 
   create_table "instagram_profiles", force: :cascade do |t|
     t.string "username", null: false
     t.string "organization", null: false
     t.string "location", null: false
-    t.string "category", default: "Musik und Kultur", null: false
     t.string "posts_digest"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

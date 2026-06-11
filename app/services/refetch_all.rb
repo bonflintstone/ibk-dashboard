@@ -26,6 +26,10 @@ class RefetchAll
       refetch(organization)
     end
 
+    # Sweep for anything the per-organization runs left behind
+    # (webform submissions, failed categorization calls).
+    categorize(Event.where(category: nil))
+
     RefetchEvent.create(new_event_count: Event.count)
   end
 
@@ -55,6 +59,16 @@ class RefetchAll
       profile = InstagramProfile.find_by!(organization:)
       ScraperRun.record(organization) { FetchInstagram.call(profile) }
     end
+
+    categorize(Event.where(organization:, category: nil))
+  end
+
+  # A failed categorization must not fail the (already committed) scrape —
+  # the events stay uncategorized and are retried on the next run.
+  def self.categorize(events)
+    CategorizeEvents.call(events)
+  rescue StandardError => error
+    Rails.logger.error("CategorizeEvents failed: #{error.class}: #{error.message}")
   end
 
   # Spaces out requests so Instagram doesn't rate-limit the run (429).

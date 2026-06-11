@@ -1,21 +1,21 @@
 import { Controller } from "@hotwired/stimulus"
 
-const STORAGE_KEY = "ibk-dashboard-organizations"
+const STORAGE_KEY = "ibk-dashboard-filter"
 
-// Client-side event filtering: categories act as tabs, and the active
-// category's venues can be toggled individually. No category ("Alle") with an
-// empty selection means "show everything".
-// Selection is read from the URL (shareable) or localStorage (returning visitors).
+// Client-side event filtering: categories act as tabs, and within the active
+// category individual venues can be toggled to narrow further (no venue
+// selected = the whole category). "Alle" shows everything.
+// The filter is read from the URL (shareable) or localStorage (returning visitors).
 export default class extends Controller {
   static targets = [
     "event", "dateGroup", "dateLink", "chip", "categoryChip", "allChip",
     "venuePanel", "emptyMessage", "stickyHeader"
   ]
-  static values = { defaultSelection: Array }
 
   connect() {
-    this.selected = new Set(this.initialSelection())
-    this.category = this.deriveCategory()
+    const { category, organizations } = this.initialFilter()
+    this.category = category
+    this.selected = new Set(organizations)
     this.apply()
 
     // The sticky filter block's height varies (wrapping chips, toggled panel),
@@ -33,34 +33,23 @@ export default class extends Controller {
     this.element.style.setProperty("--filter-height", `${this.stickyHeaderTarget.offsetHeight}px`)
   }
 
-  // URL beats the user's saved filters, saved filters beat the default.
-  initialSelection() {
-    const fromUrl = new URLSearchParams(window.location.search).getAll("organizations[]")
-    if (fromUrl.length > 0) return fromUrl
-
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored !== null) {
-      try {
-        return JSON.parse(stored) || []
-      } catch {
-        return []
-      }
+  // URL beats the user's saved filter; the default is "Alle".
+  initialFilter() {
+    const params = new URLSearchParams(window.location.search)
+    if (params.has("category") || params.has("organizations[]")) {
+      return { category: params.get("category"), organizations: params.getAll("organizations[]") }
     }
 
-    return this.defaultSelectionValue
-  }
+    try {
+      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY))
+      if (stored && !Array.isArray(stored)) {
+        return { category: stored.category ?? null, organizations: stored.organizations ?? [] }
+      }
+    } catch {
+      // fall through to the default
+    }
 
-  // The category isn't persisted; it's recovered from whichever category
-  // contains all selected venues. Cross-category selections (e.g. from an old
-  // shared URL) still filter, they just don't light up a category tab.
-  deriveCategory() {
-    if (this.selected.size === 0) return null
-
-    const match = this.categoryChipTargets.find((chip) => {
-      const organizations = JSON.parse(chip.dataset.organizations)
-      return [...this.selected].every((organization) => organizations.includes(organization))
-    })
-    return match ? match.dataset.category : null
+    return { category: null, organizations: [] }
   }
 
   toggleOrganization(event) {
@@ -73,10 +62,9 @@ export default class extends Controller {
     this.apply()
   }
 
-  // Categories behave like tabs: exactly one category's venues, or "Alle".
   selectCategory(event) {
     this.category = event.currentTarget.dataset.category
-    this.selected = new Set(JSON.parse(event.currentTarget.dataset.organizations))
+    this.selected.clear()
     this.apply()
   }
 
@@ -87,11 +75,10 @@ export default class extends Controller {
   }
 
   apply() {
-    const showEverything = this.selected.size === 0 && !this.category
-
     this.eventTargets.forEach((el) => {
-      const visible = showEverything || this.selected.has(el.dataset.organization)
-      el.classList.toggle("hidden", !visible)
+      const categoryMatches = !this.category || el.dataset.category === this.category
+      const organizationMatches = this.selected.size === 0 || this.selected.has(el.dataset.organization)
+      el.classList.toggle("hidden", !(categoryMatches && organizationMatches))
     })
 
     this.dateGroupTargets.forEach((group) => {
@@ -114,7 +101,7 @@ export default class extends Controller {
       this.markChip(chip, chip.dataset.category === this.category)
     })
 
-    this.markChip(this.allChipTarget, showEverything)
+    this.markChip(this.allChipTarget, !this.category)
 
     const anythingVisible = this.dateGroupTargets.some((group) => !group.classList.contains("hidden"))
     this.emptyMessageTarget.classList.toggle("hidden", anythingVisible)
@@ -131,10 +118,14 @@ export default class extends Controller {
 
   persist() {
     const params = new URLSearchParams()
+    if (this.category) params.set("category", this.category)
     this.selected.forEach((organization) => params.append("organizations[]", organization))
     const query = params.toString()
     window.history.replaceState(null, "", query ? `?${query}` : window.location.pathname)
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...this.selected]))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      category: this.category,
+      organizations: [...this.selected]
+    }))
   }
 }

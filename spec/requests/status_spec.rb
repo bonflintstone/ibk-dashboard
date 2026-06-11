@@ -32,8 +32,7 @@ RSpec.describe "Status page" do
 
   it "lists Instagram organizations as scrapers" do
     InstagramProfile.create!(
-      username: "arche.ahoi", organization: "Arche Ahoi",
-      location: "Bogen 30", category: "Musik und Kultur"
+      username: "arche.ahoi", organization: "Arche Ahoi", location: "Bogen 30"
     )
 
     get status_path, headers: auth_headers

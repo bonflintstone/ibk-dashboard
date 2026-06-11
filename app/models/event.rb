@@ -1,29 +1,24 @@
 class Event < ApplicationRecord
-  ORGANIZATIONS_BY_TYPE = {
-    'Theater': [ "Theater Praesent", "Brux", "Tiroler Landestheater", "Kellertheater" ],
-    'Musik und Kultur': [ "Treibhaus", "Die Bäckerei", "Innsbruck Music Hall", "Haus der Musik", "SNKTBRTLM", "Gans Anders" ],
-    'Politik': [],
-    'Andere': [ "Andere" ]
-  }
+  # Every event is assigned one of these by the Claude API (CategorizeEvents,
+  # or FetchInstagram during extraction). nil means "not categorized yet" and
+  # is displayed as "Andere" until the next categorization run.
+  CATEGORIES = [ "Theater", "Konzerte", "Party", "Kultur", "Workshop", "Politik", "Andere" ].freeze
 
-  # ORGANIZATIONS_BY_TYPE plus the organizations scraped via InstagramProfile.
-  # Categories without any organization (yet) are hidden.
-  def self.organizations_by_type
-    InstagramProfile.pluck(:category, :organization)
-      .each_with_object(ORGANIZATIONS_BY_TYPE.transform_values(&:dup)) do |(category, organization), by_type|
-        organizations = (by_type[category.to_sym] ||= [])
-        organizations << organization unless organizations.include?(organization)
-      end
-      .reject { |_category, organizations| organizations.empty? }
-  end
+  ORGANIZATIONS = [
+    "Theater Praesent", "Brux", "Tiroler Landestheater", "Kellertheater",
+    "Treibhaus", "Die Bäckerei", "Innsbruck Music Hall", "Haus der Musik",
+    "SNKTBRTLM", "Gans Anders", "Andere"
+  ].freeze
 
-  def self.organizations = organizations_by_type.values.flatten.uniq
+  # ORGANIZATIONS plus the organizations scraped via InstagramProfile.
+  def self.organizations = ORGANIZATIONS + InstagramProfile.order(:organization).pluck(:organization)
 
   enum :source, { scraper: 0, webform: 1 }
 
   validates :name, :location, :datetime, :link, presence: true
   validates :name, uniqueness: { scope: [ :datetime, :organization ] }
   validates :organization, inclusion: { in: ->(_event) { Event.organizations } }
+  validates :category, inclusion: { in: CATEGORIES }, allow_nil: true
 
   scope :published, -> { where.not(approved_at: nil).or(where(source: :scraper)) }
   scope :to_approve, -> { where(approved_at: nil).where(source: :webform) }
@@ -31,5 +26,8 @@ class Event < ApplicationRecord
 
   def date = datetime.to_date
 
+  def display_category = category || "Andere"
+
   def source_enum = [ :scraper, :webform ] # for rails_admin
+  def category_enum = CATEGORIES # for rails_admin
 end

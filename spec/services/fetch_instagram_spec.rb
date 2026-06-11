@@ -3,8 +3,7 @@ require "rails_helper"
 RSpec.describe FetchInstagram do
   let(:profile) do
     InstagramProfile.create!(
-      username: "arche.ahoi", organization: "Arche Ahoi",
-      location: "Bogen 30", category: "Musik und Kultur"
+      username: "arche.ahoi", organization: "Arche Ahoi", location: "Bogen 30"
     )
   end
 
@@ -44,14 +43,16 @@ RSpec.describe FetchInstagram do
         "datetime" => 2.days.from_now.change(hour: 23).strftime("%Y-%m-%dT%H:%M"),
         "location" => "Bogen 30",
         "description" => "Clubnacht.",
-        "link" => "https://www.instagram.com/p/ABC123/"
+        "link" => "https://www.instagram.com/p/ABC123/",
+        "category" => "Party"
       },
       {
         "name" => "Vergangenes Event",
         "datetime" => 2.days.ago.change(hour: 23).strftime("%Y-%m-%dT%H:%M"),
         "location" => "Bogen 30",
         "description" => "",
-        "link" => "https://www.instagram.com/p/DEF456/"
+        "link" => "https://www.instagram.com/p/DEF456/",
+        "category" => "Konzerte"
       }
     ]
   end
@@ -83,6 +84,7 @@ RSpec.describe FetchInstagram do
       location: "Bogen 30",
       description: "Clubnacht.",
       link: "https://www.instagram.com/p/ABC123/",
+      category: "Party",
       source: "scraper"
     )
     expect(event.datetime).to eq(Time.zone.parse(extracted_events.first["datetime"]))

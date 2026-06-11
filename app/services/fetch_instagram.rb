@@ -27,9 +27,10 @@ class FetchInstagram
             datetime: { type: "string", description: "Local start time (Europe/Vienna) as YYYY-MM-DDTHH:MM" },
             location: { type: "string", description: "Venue where the event takes place" },
             description: { type: "string", description: "1-2 German sentences with notable details, empty string if none" },
-            link: { type: "string", description: "URL of the Instagram post announcing this event most specifically" }
+            link: { type: "string", description: "URL of the Instagram post announcing this event most specifically" },
+            category: { type: "string", enum: Event::CATEGORIES, description: "The kind of event" }
           },
-          required: %w[name datetime location description link],
+          required: %w[name datetime location description link category],
           additionalProperties: false
         }
       }
@@ -110,6 +111,7 @@ class FetchInstagram
         location: event["location"].presence || profile.location,
         description: event["description"].presence,
         link: event["link"].presence || profile.url,
+        category: event["category"],
         organization: profile.organization,
         source: :scraper
       }
@@ -136,6 +138,9 @@ class FetchInstagram
       - description: 1-2 sentences in German with notable details (lineup, genre, entry rules such as
         FLINTA*-only). Empty string if there is nothing to add.
       - location: "#{profile.location}" unless a post clearly states a different place.
+      - category: the kind of event. Theater (plays, performance, improv), Konzerte (live music),
+        Party (club nights, DJ sets), Kultur (exhibitions, film, readings, talks, markets),
+        Workshop (participatory classes), Politik (demos, political talks), Andere (anything else).
       - Skip events that already happened, posts that are not event announcements (statements,
         lost & found, recaps), and events not open to the public.
     PROMPT
