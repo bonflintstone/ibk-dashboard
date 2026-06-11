@@ -7,7 +7,7 @@ class FetchKellertheater
       datestring = event_row.css(".day .short").text
       timestring = event_row.css("p.subtitle").text.split(" um ").last.strip
 
-      datetime = Time.zone.strptime(datestring.split.last + timestring, '%d.%m.%y %H:%M')
+      datetime = Time.zone.strptime(datestring.split.last + timestring, "%d.%m.%y %H:%M")
       next unless datetime.present?
 
       name = event_row.css("article h4").text.strip

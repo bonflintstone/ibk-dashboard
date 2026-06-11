@@ -114,17 +114,18 @@ RSpec.describe FetchInstagram do
     expect(messages).to have_received(:create).once
   end
 
-  it "re-extracts when events are gone even if posts are unchanged" do
+  it "re-extracts after the digest is cleared" do
     FetchInstagram.call(profile)
     Event.where(organization: profile.organization).destroy_all
+    profile.reload.update!(posts_digest: nil)
 
-    FetchInstagram.call(profile.reload)
+    FetchInstagram.call(profile)
 
     expect(messages).to have_received(:create).twice
     expect(Event.exists?(name: "Groove Harbor")).to be(true)
   end
 
-  it "raises EmptyScrape and keeps old events when no upcoming events are extracted" do
+  it "keeps old events and stores the digest when no upcoming events are extracted" do
     old_event = Event.create!(
       name: "Altes Event", location: "Bogen 30", organization: profile.organization,
       datetime: 1.day.from_now, link: "https://example.com", source: :scraper
@@ -132,9 +133,10 @@ RSpec.describe FetchInstagram do
     allow(messages).to receive(:create)
       .and_return(double(content: [ double(type: :text, text: { events: [] }.to_json) ], stop_reason: :end_turn))
 
-    expect { FetchInstagram.call(profile) }.to raise_error(RefetchAll::EmptyScrape)
+    FetchInstagram.call(profile)
+
     expect(Event.exists?(old_event.id)).to be(true)
-    expect(profile.reload.posts_digest).to be_nil
+    expect(profile.reload.posts_digest).to be_present
   end
 
   it "raises when Instagram does not respond with 200" do

@@ -41,18 +41,20 @@ class FetchInstagram
     posts = fetch_posts(profile.username)
     digest = Digest::SHA256.hexdigest(posts.to_json)
 
-    # Skip the (paid) extraction when the profile hasn't posted anything new
-    # since the last successful run and the events are still in place.
-    return if digest == profile.posts_digest &&
-      Event.where(source: :scraper, organization: profile.organization).exists?
+    # Skip the (paid) extraction when the profile hasn't posted anything
+    # new since the last successful run. Clear posts_digest to force one.
+    return if digest == profile.posts_digest
 
     events = extract_events(posts, profile)
     events = events.select { |event| event[:datetime] >= Time.zone.now.beginning_of_day }
-    raise RefetchAll::EmptyScrape, "extracted 0 upcoming events" if events.empty?
 
-    Event.transaction do
-      Event.where(source: :scraper, organization: profile.organization).destroy_all
-      events.each { |event| Event.create(event) }
+    # An empty result is legitimate (e.g. only recap posts). Old events are
+    # kept rather than wiped, so a model hiccup can't empty the organization.
+    if events.any?
+      Event.transaction do
+        Event.where(source: :scraper, organization: profile.organization).destroy_all
+        events.each { |event| Event.create(event) }
+      end
     end
 
     profile.update!(posts_digest: digest)

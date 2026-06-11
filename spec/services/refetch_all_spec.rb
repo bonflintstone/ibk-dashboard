@@ -55,7 +55,7 @@ RSpec.describe RefetchAll do
     RefetchAll::SCRAPERS.each do |organization, fetcher|
       allow(fetcher).to receive(:call) { create_event(organization) }
     end
-    allow(FetchInstagram).to receive(:call).and_raise(RefetchAll::EmptyScrape, "extracted 0 upcoming events")
+    allow(FetchInstagram).to receive(:call).and_raise("Instagram responded with 403")
 
     RefetchAll.call
 

@@ -13,3 +13,15 @@ InstagramProfile.find_or_create_by!(username: "arche.ahoi") do |profile|
   profile.location = "Bogen 30"
   profile.category = "Musik und Kultur"
 end
+
+InstagramProfile.find_or_create_by!(username: "pembau.art") do |profile|
+  profile.organization = "Pembau"
+  profile.location = "Kulturbauernhof Pembau"
+  profile.category = "Musik und Kultur"
+end
+
+InstagramProfile.find_or_create_by!(username: "links_vom_inn") do |profile|
+  profile.organization = "Links vom Inn"
+  profile.location = "Innsbruck"
+  profile.category = "Andere"
+end
