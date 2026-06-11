@@ -1,6 +1,5 @@
 class Event < ApplicationRecord
   ORGANIZATIONS_BY_TYPE = {
-    'Kino': [ "Leokino" ],
     'Theater': [ "Theater Praesent", "Brux", "Tiroler Landestheater", "Kellertheater" ],
     'Musik und Kultur': [ "Treibhaus", "Die Bäckerei", "Innsbruck Music Hall", "Haus der Musik", "SNKTBRTLM", "Gans Anders" ],
     'Politik': [],

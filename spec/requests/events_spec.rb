@@ -4,7 +4,7 @@ RSpec.describe "Events page" do
   it "renders all upcoming events with filter chips and date navigation" do
     Event.create!(name: "Konzert", location: "Treibhaus", organization: "Treibhaus",
                   datetime: 1.day.from_now, link: "https://example.com", source: :scraper)
-    Event.create!(name: "Filmabend", location: "Leo1", organization: "Leokino",
+    Event.create!(name: "Filmabend", location: "Brux", organization: "Brux",
                   datetime: 2.days.from_now, link: "https://example.com/film", source: :scraper)
 
     get root_path

@@ -1,7 +1,6 @@
 class RefetchAll
   SCRAPERS = {
     "Treibhaus" => FetchTreibhaus,
-    "Leokino" => FetchLeokino,
     "Theater Praesent" => FetchTheaterPraesent,
     "Kellertheater" => FetchKellertheater,
     "Die Bäckerei" => FetchBaeckerei,

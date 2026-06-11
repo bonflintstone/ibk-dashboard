@@ -1,6 +1,5 @@
 module ApplicationHelper
   ORGANIZATION_COLOR_KEYS = {
-    "Leokino" => "red",
     "Treibhaus" => "blue",
     "Theater Praesent" => "yellow",
     "Die Bäckerei" => "green",
