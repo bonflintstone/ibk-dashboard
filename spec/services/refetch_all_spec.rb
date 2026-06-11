@@ -60,6 +60,23 @@ RSpec.describe RefetchAll do
     expect(ScraperRun.find_by(scraper: "Arche Ahoi")).to be_success
   end
 
+  it "pauses between Instagram profiles to avoid rate limiting" do
+    %w[arche.ahoi pembau.art].each do |username|
+      InstagramProfile.create!(
+        username:, organization: username, location: "Innsbruck", category: "Musik und Kultur"
+      )
+    end
+    RefetchAll::SCRAPERS.each do |organization, fetcher|
+      allow(fetcher).to receive(:call) { create_event(organization) }
+    end
+    allow(FetchInstagram).to receive(:call)
+    allow(RefetchAll).to receive(:pause)
+
+    RefetchAll.call
+
+    expect(RefetchAll).to have_received(:pause).once.with(15)
+  end
+
   it "records a failure for a profile but continues when FetchInstagram raises" do
     InstagramProfile.create!(
       username: "arche.ahoi", organization: "Arche Ahoi",

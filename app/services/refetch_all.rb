@@ -20,7 +20,12 @@ class RefetchAll
   class EmptyScrape < StandardError; end
 
   def self.call
-    organizations.each { |organization| refetch(organization) }
+    SCRAPERS.each_key { |organization| refetch(organization) }
+
+    InstagramProfile.order(:organization).pluck(:organization).each_with_index do |organization, index|
+      pause(15) if index.positive?
+      refetch(organization)
+    end
 
     RefetchEvent.create(new_event_count: Event.count)
   end
@@ -52,4 +57,7 @@ class RefetchAll
       ScraperRun.record(organization) { FetchInstagram.call(profile) }
     end
   end
+
+  # Spaces out requests so Instagram doesn't rate-limit the run (429).
+  def self.pause(seconds) = sleep(seconds)
 end

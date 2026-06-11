@@ -13,6 +13,7 @@ class FetchInstagram
   USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
 
   MODEL = :"claude-opus-4-8"
+  MAX_ATTEMPTS = 3
 
   EVENTS_SCHEMA = {
     type: "object",
@@ -61,11 +62,18 @@ class FetchInstagram
   end
 
   def self.fetch_posts(username)
-    response = HTTParty.get(
-      PROFILE_URL,
-      query: { username: },
-      headers: { "x-ig-app-id" => APP_ID, "User-Agent" => USER_AGENT }
-    )
+    response = nil
+    MAX_ATTEMPTS.times do |attempt|
+      response = HTTParty.get(
+        PROFILE_URL,
+        query: { username: },
+        headers: { "x-ig-app-id" => APP_ID, "User-Agent" => USER_AGENT }
+      )
+      break unless response.code == 429 && attempt < MAX_ATTEMPTS - 1
+
+      # Rate limited — back off and retry before giving up.
+      pause((response.headers["retry-after"].presence || 30).to_i * (attempt + 1))
+    end
     raise "Instagram responded with #{response.code}" unless response.code == 200
 
     edges = JSON.parse(response.body).dig("data", "user", "edge_owner_to_timeline_media", "edges")
@@ -164,6 +172,8 @@ class FetchInstagram
   def self.anthropic
     @anthropic ||= Anthropic::Client.new
   end
+
+  def self.pause(seconds) = sleep(seconds)
 
   private_class_method :fetch_posts, :extract_events, :system_prompt, :post_blocks, :image_block, :anthropic
 end

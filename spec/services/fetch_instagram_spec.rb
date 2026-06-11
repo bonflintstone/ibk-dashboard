@@ -144,4 +144,29 @@ RSpec.describe FetchInstagram do
 
     expect { FetchInstagram.call(profile) }.to raise_error(/403/)
   end
+
+  it "retries with backoff when Instagram rate-limits" do
+    allow(FetchInstagram).to receive(:pause)
+    rate_limited = double(code: 429, body: "", headers: { "retry-after" => "10" })
+    allow(HTTParty).to receive(:get)
+      .with(FetchInstagram::PROFILE_URL, anything)
+      .and_return(rate_limited, rate_limited, double(code: 200, body: instagram_json))
+
+    FetchInstagram.call(profile)
+
+    expect(FetchInstagram).to have_received(:pause).with(10).ordered
+    expect(FetchInstagram).to have_received(:pause).with(20).ordered
+    expect(Event.exists?(name: "Groove Harbor")).to be(true)
+  end
+
+  it "gives up after repeated rate limiting" do
+    allow(FetchInstagram).to receive(:pause)
+    rate_limited = double(code: 429, body: "", headers: {})
+    allow(HTTParty).to receive(:get)
+      .with(FetchInstagram::PROFILE_URL, anything)
+      .and_return(rate_limited)
+
+    expect { FetchInstagram.call(profile) }.to raise_error(/429/)
+    expect(FetchInstagram).to have_received(:pause).twice
+  end
 end
