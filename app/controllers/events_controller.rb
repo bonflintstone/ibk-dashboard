@@ -22,12 +22,18 @@ class EventsController < ApplicationController
   end
 
   def create
+    unless Hcaptcha.verify?(params["h-captcha-response"], remote_ip: request.remote_ip)
+      redirect_to root_path, flash: { alert: "Captcha-Prüfung fehlgeschlagen. Bitte versuche es erneut." }
+      return
+    end
+
     @event = Event.new(event_params.merge(source: :webform, organization: "Andere"))
 
     if @event.save
-      redirect_to root_path, flash: { notice: "Thanks for your submission. We will check it and then it will go online" }
+      ReviewEventJob.perform_later(@event)
+      redirect_to root_path, flash: { notice: "Danke! Dein Event wird automatisch geprüft und ist gleich online." }
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 

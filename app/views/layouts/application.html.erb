@@ -14,12 +14,25 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icon.png">
     <%= favicon_link_tag asset_path("favicon.png") %>
+    <% if Hcaptcha.site_key.present? %>
+      <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+    <% end %>
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
   <body class="bg-gray-50 text-gray-900">
+    <% if flash.any? %>
+      <div class="container mx-auto mt-4 px-4">
+        <div class="mx-auto flex w-full max-w-2xl flex-col gap-2">
+          <% flash.each do |type, message| %>
+            <div class="rounded-lg border px-4 py-2 text-sm <%= type.to_s == "alert" ? "border-red-300 bg-red-100 text-red-800" : "border-green-300 bg-green-100 text-green-800" %>"><%= message %></div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
     <%# pb keeps the last content clear of the fixed footer bar %>
     <main class="container mx-auto mt-4 flex px-4 pb-14">
       <%= yield %>
@@ -27,8 +40,18 @@
     <footer class="fixed inset-x-0 bottom-0 z-20 border-t border-gray-200 bg-gray-50 py-2 text-sm text-gray-500">
       <%# mirrors the wrappers around the page content so the link aligns with it %>
       <div class="container mx-auto px-4">
-        <div class="mx-auto w-full max-w-2xl">
+        <div class="mx-auto flex w-full max-w-2xl justify-between" data-controller="modal">
           <%= link_to "Impressum", imprint_path, class: "underline" %>
+          <button type="button" class="cursor-pointer underline" data-action="modal#open">Event eintragen</button>
+
+          <dialog class="m-auto w-full max-w-md rounded-xl p-6 backdrop:bg-gray-900/50"
+                  data-modal-target="dialog" data-action="click->modal#closeOnBackdrop">
+            <div class="flex items-center justify-between">
+              <h2 class="text-xl font-bold text-gray-900">Neues Event</h2>
+              <button type="button" class="cursor-pointer text-2xl leading-none text-gray-500" data-action="modal#close" aria-label="Schließen">&times;</button>
+            </div>
+            <%= render "events/form", event: Event.new %>
+          </dialog>
         </div>
       </div>
     </footer>

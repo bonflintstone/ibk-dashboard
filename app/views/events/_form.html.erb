@@ -1,0 +1,40 @@
+<%= form_with(model: event, class: "mt-4 w-full flex flex-col gap-2 items-stretch", data: { turbo: false }) do |f| %>
+  <% if event.errors.any? %>
+    <div class="rounded-lg border border-red-300 bg-red-100 px-4 py-2 text-sm text-red-800">
+      <% event.errors.full_messages.each do |message| %>
+        <p><%= message %></p>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label(:name, "Name") %>
+    <%= f.text_field(:name, class: "w-full", required: true) %>
+  </div>
+
+  <div>
+    <%= f.label(:link, "Link") %>
+    <%= f.url_field(:link, class: "w-full", required: true, placeholder: "https://…") %>
+  </div>
+
+  <div>
+    <%= f.label(:location, "Location") %>
+    <%= f.text_field(:location, class: "w-full", required: true) %>
+  </div>
+
+  <div>
+    <%= f.label(:datetime, "Datum & Uhrzeit") %>
+    <%= f.datetime_field(:datetime, class: "w-full", required: true) %>
+  </div>
+
+  <div>
+    <%= f.label(:description, "Beschreibung") %>
+    <%= f.text_area(:description, class: "w-full") %>
+  </div>
+
+  <% if Hcaptcha.site_key.present? %>
+    <div class="h-captcha" data-sitekey="<%= Hcaptcha.site_key %>"></div>
+  <% end %>
+
+  <%= f.submit("Speichern", class: "w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer") %>
+<% end %>

@@ -27,4 +27,47 @@ RSpec.describe "Events page" do
 
     expect(response.body).to include("data-category=\"Andere\"")
   end
+
+  it "renders the new-event modal in the footer" do
+    get root_path
+
+    expect(response.body).to include("Event eintragen")
+    expect(response.body).to include("data-controller=\"modal\"")
+    expect(response.body).to include("<dialog")
+  end
+
+  describe "submitting an event" do
+    def valid_params
+      { event: { name: "Impro-Abend", location: "Bogen 30", link: "https://example.com",
+                 datetime: 1.day.from_now.iso8601, description: "" } }
+    end
+
+    it "creates an unapproved event and enqueues the AI review" do
+      expect do
+        post events_path, params: valid_params
+      end.to change(Event, :count).by(1).and have_enqueued_job(ReviewEventJob)
+
+      event = Event.last
+      expect(event).to have_attributes(source: "webform", organization: "Andere", approved_at: nil)
+      expect(response).to redirect_to(root_path)
+    end
+
+    it "rejects the submission when the captcha fails" do
+      allow(Hcaptcha).to receive(:verify?).and_return(false)
+
+      expect do
+        post events_path, params: valid_params
+      end.not_to change(Event, :count)
+
+      expect(response).to redirect_to(root_path)
+      expect(flash[:alert]).to include("Captcha")
+    end
+
+    it "re-renders the form for invalid submissions" do
+      post events_path, params: { event: { name: "", location: "", link: "", datetime: "" } }
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(Event.count).to eq(0)
+    end
+  end
 end
