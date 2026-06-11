@@ -20,6 +20,19 @@ RSpec.describe RefetchAll do
     expect(Event.exists?(old_event.id)).to be(true)
   end
 
+  it "records a success for empty-allowed scrapers returning 0 events" do
+    RefetchAll::SCRAPERS.each do |organization, fetcher|
+      allow(fetcher).to receive(:call) do
+        create_event(organization) unless RefetchAll::EMPTY_ALLOWED.include?(organization)
+      end
+    end
+
+    RefetchAll.call
+
+    expect(ScraperRun.find_by(scraper: "SNKTBRTLM")).to be_success
+    expect(ScraperRun.find_by(scraper: "Gans Anders")).to be_success
+  end
+
   it "records successes when scrapers create events" do
     RefetchAll::SCRAPERS.each do |organization, fetcher|
       allow(fetcher).to receive(:call) { create_event(organization) }

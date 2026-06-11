@@ -8,8 +8,14 @@ class RefetchAll
     "Haus der Musik" => FetchHausDerMusik,
     "Brux" => FetchBrux,
     "Tiroler Landestheater" => FetchTirolerLandestheater,
-    "Innsbruck Music Hall" => FetchMusichall
+    "Innsbruck Music Hall" => FetchMusichall,
+    "SNKTBRTLM" => FetchSnktbrtlm,
+    "Gans Anders" => FetchGansAnders
   }.freeze
+
+  # Venues with only a handful of events per year — an empty scrape is
+  # legitimate there and doesn't indicate a broken scraper.
+  EMPTY_ALLOWED = [ "SNKTBRTLM", "Gans Anders" ].freeze
 
   class EmptyScrape < StandardError; end
 
@@ -33,7 +39,9 @@ class RefetchAll
         Event.transaction do
           Event.where(source: :scraper, organization:).destroy_all
           fetcher.call
-          raise EmptyScrape, "scraper returned 0 events" if Event.where(source: :scraper, organization:).none?
+          if Event.where(source: :scraper, organization:).none? && EMPTY_ALLOWED.exclude?(organization)
+            raise EmptyScrape, "scraper returned 0 events"
+          end
         end
       end
     else
