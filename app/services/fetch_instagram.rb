@@ -68,7 +68,8 @@ class FetchInstagram
       response = HTTParty.get(
         PROFILE_URL,
         query: { username: },
-        headers: { "x-ig-app-id" => APP_ID, "User-Agent" => USER_AGENT }
+        headers: { "x-ig-app-id" => APP_ID, "User-Agent" => USER_AGENT },
+        **proxy_options
       )
       break unless response.code == 429 && attempt < MAX_ATTEMPTS - 1
 
@@ -161,7 +162,7 @@ class FetchInstagram
   # so images are downloaded here and sent inline. A failed download
   # only drops the image; the caption is still extracted from.
   def self.image_block(image_url)
-    response = HTTParty.get(image_url, headers: { "User-Agent" => USER_AGENT })
+    response = HTTParty.get(image_url, headers: { "User-Agent" => USER_AGENT }, **proxy_options)
     return nil unless response.code == 200
 
     {
@@ -174,11 +175,23 @@ class FetchInstagram
     }
   end
 
+  # Meta rejects requests from the server's datacenter IP at the edge
+  # (unconditional 429 with an empty body), so all Instagram traffic goes
+  # through a rotating residential proxy when one is configured.
+  def self.proxy_options
+    return {} if ENV["DECODO_URL"].blank?
+
+    host, port = ENV["DECODO_URL"].split(":")
+    user, password = ENV["DECODO_AUTH"].to_s.split(":")
+    { http_proxyaddr: host, http_proxyport: port.to_i, http_proxyuser: user, http_proxypass: password }
+  end
+
   def self.anthropic
     @anthropic ||= Anthropic::Client.new
   end
 
   def self.pause(seconds) = sleep(seconds)
 
-  private_class_method :fetch_posts, :extract_events, :system_prompt, :post_blocks, :image_block, :anthropic
+  private_class_method :fetch_posts, :extract_events, :system_prompt, :post_blocks, :image_block,
+                       :proxy_options, :anthropic
 end

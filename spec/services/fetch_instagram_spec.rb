@@ -141,6 +141,19 @@ RSpec.describe FetchInstagram do
     expect(profile.reload.posts_digest).to be_present
   end
 
+  it "routes Instagram requests through the residential proxy when configured" do
+    allow(ENV).to receive(:[]).and_call_original
+    allow(ENV).to receive(:[]).with("DECODO_URL").and_return("gate.example.com:7000")
+    allow(ENV).to receive(:[]).with("DECODO_AUTH").and_return("user:pass")
+
+    FetchInstagram.call(profile)
+
+    proxy = { http_proxyaddr: "gate.example.com", http_proxyport: 7000,
+              http_proxyuser: "user", http_proxypass: "pass" }
+    expect(HTTParty).to have_received(:get).with(FetchInstagram::PROFILE_URL, hash_including(proxy))
+    expect(HTTParty).to have_received(:get).with(%r{https://cdn\.example\.com/}, hash_including(proxy)).twice
+  end
+
   it "raises when Instagram does not respond with 200" do
     allow(HTTParty).to receive(:get).and_return(double(code: 403, body: ""))
 

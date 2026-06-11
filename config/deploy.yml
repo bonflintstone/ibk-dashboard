@@ -29,6 +29,8 @@ env:
     - ADMIN_PASSWORD
     - HCAPTCHA_SITE_KEY
     - HCAPTCHA_SECRET_KEY
+    - DECODO_AUTH
+    - DECODO_URL
   clear:
     SOLID_QUEUE_IN_PUMA: true
 
