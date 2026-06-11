@@ -1,4 +1,7 @@
-<%= form_with(model: event, class: "mt-4 w-full flex flex-col gap-2 items-stretch", data: { turbo: false }) do |f| %>
+<% input_classes = "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-gray-900 focus:outline-none" %>
+<% label_classes = "mb-1 block text-sm font-medium text-gray-700" %>
+
+<%= form_with(model: event, class: "mt-4 w-full flex flex-col gap-3 items-stretch", data: { turbo: false }) do |f| %>
   <% if event.errors.any? %>
     <div class="rounded-lg border border-red-300 bg-red-100 px-4 py-2 text-sm text-red-800">
       <% event.errors.full_messages.each do |message| %>
@@ -8,33 +11,33 @@
   <% end %>
 
   <div>
-    <%= f.label(:name, "Name") %>
-    <%= f.text_field(:name, class: "w-full", required: true) %>
+    <%= f.label(:name, "Name", class: label_classes) %>
+    <%= f.text_field(:name, class: input_classes, required: true) %>
   </div>
 
   <div>
-    <%= f.label(:link, "Link") %>
-    <%= f.url_field(:link, class: "w-full", required: true, placeholder: "https://…") %>
+    <%= f.label(:link, "Link", class: label_classes) %>
+    <%= f.url_field(:link, class: input_classes, required: true, placeholder: "https://…") %>
   </div>
 
   <div>
-    <%= f.label(:location, "Location") %>
-    <%= f.text_field(:location, class: "w-full", required: true) %>
+    <%= f.label(:location, "Location", class: label_classes) %>
+    <%= f.text_field(:location, class: input_classes, required: true) %>
   </div>
 
   <div>
-    <%= f.label(:datetime, "Datum & Uhrzeit") %>
-    <%= f.datetime_field(:datetime, class: "w-full", required: true) %>
+    <%= f.label(:datetime, "Datum & Uhrzeit", class: label_classes) %>
+    <%= f.datetime_field(:datetime, class: input_classes, required: true) %>
   </div>
 
   <div>
-    <%= f.label(:description, "Beschreibung") %>
-    <%= f.text_area(:description, class: "w-full") %>
+    <%= f.label(:description, "Beschreibung", class: label_classes) %>
+    <%= f.text_area(:description, class: "#{input_classes} min-h-20") %>
   </div>
 
   <% if Hcaptcha.site_key.present? %>
     <div class="h-captcha" data-sitekey="<%= Hcaptcha.site_key %>"></div>
   <% end %>
 
-  <%= f.submit("Speichern", class: "w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer") %>
+  <%= f.submit("Speichern", class: "w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg cursor-pointer") %>
 <% end %>
