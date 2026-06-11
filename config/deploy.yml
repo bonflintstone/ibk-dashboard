@@ -25,6 +25,7 @@ env:
   secret:
     - RAILS_MASTER_KEY
     - SECRET_KEY_BASE
+    - ANTHROPIC_API_KEY
   clear:
     SOLID_QUEUE_IN_PUMA: true
 

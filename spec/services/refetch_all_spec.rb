@@ -30,4 +30,36 @@ RSpec.describe RefetchAll do
     expect(ScraperRun.where(status: :success).count).to eq(RefetchAll::SCRAPERS.size)
     expect(RefetchEvent.last.new_event_count).to eq(RefetchAll::SCRAPERS.size)
   end
+
+  it "runs FetchInstagram for each Instagram profile" do
+    profile = InstagramProfile.create!(
+      username: "arche.ahoi", organization: "Arche Ahoi",
+      location: "Bogen 30", category: "Musik und Kultur"
+    )
+    RefetchAll::SCRAPERS.each do |organization, fetcher|
+      allow(fetcher).to receive(:call) { create_event(organization) }
+    end
+    allow(FetchInstagram).to receive(:call).with(profile) { create_event("Arche Ahoi") }
+
+    RefetchAll.call
+
+    expect(FetchInstagram).to have_received(:call).with(profile)
+    expect(ScraperRun.find_by(scraper: "Arche Ahoi")).to be_success
+  end
+
+  it "records a failure for a profile but continues when FetchInstagram raises" do
+    InstagramProfile.create!(
+      username: "arche.ahoi", organization: "Arche Ahoi",
+      location: "Bogen 30", category: "Musik und Kultur"
+    )
+    RefetchAll::SCRAPERS.each do |organization, fetcher|
+      allow(fetcher).to receive(:call) { create_event(organization) }
+    end
+    allow(FetchInstagram).to receive(:call).and_raise(RefetchAll::EmptyScrape, "extracted 0 upcoming events")
+
+    RefetchAll.call
+
+    expect(ScraperRun.find_by(scraper: "Arche Ahoi")).to be_failure
+    expect(RefetchEvent.last).to be_present
+  end
 end

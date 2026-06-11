@@ -7,3 +7,9 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
+
+InstagramProfile.find_or_create_by!(username: "arche.ahoi") do |profile|
+  profile.organization = "Arche Ahoi"
+  profile.location = "Bogen 30"
+  profile.category = "Musik und Kultur"
+end

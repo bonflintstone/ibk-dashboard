@@ -1,0 +1,145 @@
+require "rails_helper"
+
+RSpec.describe FetchInstagram do
+  let(:profile) do
+    InstagramProfile.create!(
+      username: "arche.ahoi", organization: "Arche Ahoi",
+      location: "Bogen 30", category: "Musik und Kultur"
+    )
+  end
+
+  let(:instagram_json) do
+    {
+      data: {
+        user: {
+          edge_owner_to_timeline_media: {
+            edges: [
+              {
+                node: {
+                  shortcode: "ABC123",
+                  taken_at_timestamp: 2.days.ago.to_i,
+                  display_url: "https://cdn.example.com/flyer.jpg",
+                  edge_media_to_caption: { edges: [ { node: { text: "FREITAG 13.6. GROOVE HARBOR 23:00" } } ] }
+                }
+              },
+              {
+                node: {
+                  shortcode: "DEF456",
+                  taken_at_timestamp: 1.day.ago.to_i,
+                  display_url: "https://cdn.example.com/program.jpg",
+                  edge_media_to_caption: { edges: [] }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }.to_json
+  end
+
+  let(:extracted_events) do
+    [
+      {
+        "name" => "Groove Harbor",
+        "datetime" => 2.days.from_now.change(hour: 23).strftime("%Y-%m-%dT%H:%M"),
+        "location" => "Bogen 30",
+        "description" => "Clubnacht.",
+        "link" => "https://www.instagram.com/p/ABC123/"
+      },
+      {
+        "name" => "Vergangenes Event",
+        "datetime" => 2.days.ago.change(hour: 23).strftime("%Y-%m-%dT%H:%M"),
+        "location" => "Bogen 30",
+        "description" => "",
+        "link" => "https://www.instagram.com/p/DEF456/"
+      }
+    ]
+  end
+
+  let(:messages) { double("messages") }
+
+  before do
+    allow(HTTParty).to receive(:get)
+      .with(FetchInstagram::PROFILE_URL, anything)
+      .and_return(double(code: 200, body: instagram_json))
+    allow(HTTParty).to receive(:get)
+      .with(%r{https://cdn\.example\.com/}, anything)
+      .and_return(double(code: 200, body: "JPEGDATA", headers: { "content-type" => "image/jpeg" }))
+
+    client = double("Anthropic::Client", messages: messages)
+    allow(Anthropic::Client).to receive(:new).and_return(client)
+    FetchInstagram.instance_variable_set(:@anthropic, nil)
+
+    text_block = double(type: :text, text: { events: extracted_events }.to_json)
+    allow(messages).to receive(:create).and_return(double(content: [ text_block ], stop_reason: :end_turn))
+  end
+
+  it "creates events from the extracted data" do
+    FetchInstagram.call(profile)
+
+    event = Event.find_by(name: "Groove Harbor")
+    expect(event).to have_attributes(
+      organization: "Arche Ahoi",
+      location: "Bogen 30",
+      description: "Clubnacht.",
+      link: "https://www.instagram.com/p/ABC123/",
+      source: "scraper"
+    )
+    expect(event.datetime).to eq(Time.zone.parse(extracted_events.first["datetime"]))
+  end
+
+  it "drops events in the past" do
+    FetchInstagram.call(profile)
+
+    expect(Event.exists?(name: "Vergangenes Event")).to be(false)
+  end
+
+  it "sends all posts with captions and images to Claude" do
+    FetchInstagram.call(profile)
+
+    expect(messages).to have_received(:create) do |params|
+      blocks = params[:messages].first[:content]
+      image_blocks = blocks.select { |block| block[:type] == "image" }
+      expect(image_blocks.size).to eq(2)
+      expect(image_blocks.first[:source]).to include(type: "base64", media_type: "image/jpeg")
+      expect(blocks.first[:text]).to include("https://www.instagram.com/p/ABC123/")
+      expect(blocks.first[:text]).to include("GROOVE HARBOR")
+    end
+  end
+
+  it "skips the extraction when the posts have not changed and events exist" do
+    FetchInstagram.call(profile)
+    FetchInstagram.call(profile.reload)
+
+    expect(messages).to have_received(:create).once
+  end
+
+  it "re-extracts when events are gone even if posts are unchanged" do
+    FetchInstagram.call(profile)
+    Event.where(organization: profile.organization).destroy_all
+
+    FetchInstagram.call(profile.reload)
+
+    expect(messages).to have_received(:create).twice
+    expect(Event.exists?(name: "Groove Harbor")).to be(true)
+  end
+
+  it "raises EmptyScrape and keeps old events when no upcoming events are extracted" do
+    old_event = Event.create!(
+      name: "Altes Event", location: "Bogen 30", organization: profile.organization,
+      datetime: 1.day.from_now, link: "https://example.com", source: :scraper
+    )
+    allow(messages).to receive(:create)
+      .and_return(double(content: [ double(type: :text, text: { events: [] }.to_json) ], stop_reason: :end_turn))
+
+    expect { FetchInstagram.call(profile) }.to raise_error(RefetchAll::EmptyScrape)
+    expect(Event.exists?(old_event.id)).to be(true)
+    expect(profile.reload.posts_digest).to be_nil
+  end
+
+  it "raises when Instagram does not respond with 200" do
+    allow(HTTParty).to receive(:get).and_return(double(code: 403, body: ""))
+
+    expect { FetchInstagram.call(profile) }.to raise_error(/403/)
+  end
+end

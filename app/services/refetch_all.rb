@@ -27,6 +27,12 @@ class RefetchAll
       end
     end
 
+    # FetchInstagram replaces a profile's events transactionally itself,
+    # so it can skip the Claude API call when nothing was posted.
+    InstagramProfile.find_each do |profile|
+      ScraperRun.record(profile.organization) { FetchInstagram.call(profile) }
+    end
+
     RefetchEvent.create(new_event_count: Event.count)
   end
 end

@@ -5,13 +5,23 @@ class Event < ApplicationRecord
     'Musik und Kultur': [ "Treibhaus", "Die Bäckerei", "Innsbruck Music Hall", "Haus der Musik" ],
     'Andere': [ "Andere" ]
   }
-  ORGANIZATIONS = ORGANIZATIONS_BY_TYPE.values.flatten.uniq
+
+  # ORGANIZATIONS_BY_TYPE plus the organizations scraped via InstagramProfile.
+  def self.organizations_by_type
+    InstagramProfile.pluck(:category, :organization)
+      .each_with_object(ORGANIZATIONS_BY_TYPE.transform_values(&:dup)) do |(category, organization), by_type|
+        organizations = (by_type[category.to_sym] ||= [])
+        organizations << organization unless organizations.include?(organization)
+      end
+  end
+
+  def self.organizations = organizations_by_type.values.flatten.uniq
 
   enum :source, { scraper: 0, webform: 1 }
 
   validates :name, :location, :datetime, :link, presence: true
   validates :name, uniqueness: { scope: [ :datetime, :organization ] }
-  validates :organization, inclusion: { in: ORGANIZATIONS }
+  validates :organization, inclusion: { in: ->(_event) { Event.organizations } }
 
   scope :published, -> { where.not(approved_at: nil).or(where(source: :scraper)) }
   scope :to_approve, -> { where(approved_at: nil).where(source: :webform) }
