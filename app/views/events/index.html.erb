@@ -1,4 +1,4 @@
-<div class="w-full max-w-2xl mx-auto" data-controller="events">
+<div class="w-full max-w-2xl mx-auto" data-controller="events" data-action="scroll@window->events#highlightCurrentDate">
   <h1 class="text-3xl font-bold tracking-tight">IBK Dashboard</h1>
 
   <% if @refetch_event %>
@@ -15,25 +15,29 @@
   <% venues = @events.map(&:organization).uniq.sort %>
 
   <div class="sticky top-0 z-10 -mx-4 bg-gray-50 px-4 pt-4" data-events-target="stickyHeader">
-    <div class="inline-flex rounded-full border border-gray-300 bg-white p-0.5 text-sm font-medium">
-      <button type="button" class="cursor-pointer rounded-full px-3 py-0.5" data-events-target="modeChip" data-action="events#selectMode" data-mode="category">Kategorie</button>
-      <button type="button" class="cursor-pointer rounded-full px-3 py-0.5" data-events-target="modeChip" data-action="events#selectMode" data-mode="venue">Venue</button>
-    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="inline-flex rounded-full border border-gray-300 bg-white p-0.5 text-sm font-medium">
+        <button type="button" class="cursor-pointer rounded-full px-3 py-0.5" data-events-target="modeChip" data-action="events#selectMode" data-mode="category">Kategorie</button>
+        <button type="button" class="cursor-pointer rounded-full px-3 py-0.5" data-events-target="modeChip" data-action="events#selectMode" data-mode="venue">Venue</button>
+      </div>
 
-    <div class="mt-2 flex flex-wrap gap-2" data-events-target="panel" data-mode="category">
-      <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-events-target="allChip" data-action="events#showAll">Alle</button>
-      <% categories.each do |category| %>
-        <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-events-target="chip" data-action="events#selectChip" data-mode="category" data-value="<%= category %>"><%= category %></button>
-      <% end %>
-    </div>
+      <%# display:contents lets the chips flow inline with the mode toggle in
+          the row above, wrapping across the full width. %>
+      <div class="contents" data-events-target="panel" data-mode="category">
+        <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-events-target="allChip" data-action="events#showAll">Alle</button>
+        <% categories.each do |category| %>
+          <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-events-target="chip" data-action="events#selectChip" data-mode="category" data-value="<%= category %>"><%= category %></button>
+        <% end %>
+      </div>
 
-    <div class="hidden mt-2 flex flex-wrap gap-2" data-events-target="panel" data-mode="venue">
-      <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-events-target="allChip" data-action="events#showAll">Alle</button>
-      <% venues.each do |venue| %>
-        <button type="button" class="cursor-pointer flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1 text-sm" data-events-target="chip" data-action="events#selectChip" data-mode="venue" data-value="<%= venue %>">
-          <span class="inline-block h-2 w-2 rounded-full <%= organization_accent_color(venue) %>"></span><%= venue %>
-        </button>
-      <% end %>
+      <div class="hidden contents" data-events-target="panel" data-mode="venue">
+        <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-events-target="allChip" data-action="events#showAll">Alle</button>
+        <% venues.each do |venue| %>
+          <button type="button" class="cursor-pointer flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1 text-sm" data-events-target="chip" data-action="events#selectChip" data-mode="venue" data-value="<%= venue %>">
+            <span class="inline-block h-2 w-2 rounded-full <%= organization_accent_color(venue) %>"></span><%= venue %>
+          </button>
+        <% end %>
+      </div>
     </div>
 
     <nav class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-3 mt-2">
@@ -48,7 +52,7 @@
 
   <% events_by_date.each do |date, events| %>
     <section id="date-<%= date.iso8601 %>" class="scroll-mt-(--filter-height,4rem)" data-events-target="dateGroup">
-      <h3 class="sticky top-(--filter-height,3.5rem) bg-gray-50 pt-4 pb-2 text-sm font-semibold uppercase tracking-wide text-gray-500"><%= l(date, format: "%A %d. %B") %></h3>
+      <h3 class="pt-4 pb-2 text-sm font-semibold uppercase tracking-wide text-gray-500"><%= l(date, format: "%A %d. %B") %></h3>
 
       <% events.each do |event| %>
         <%= link_to event.link, target: "_blank", class: "block mb-3", data: { events_target: "event", organization: event.organization, category: event.display_category } do %>

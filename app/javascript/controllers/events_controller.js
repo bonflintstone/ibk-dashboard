@@ -20,7 +20,7 @@ export default class extends Controller {
     this.apply()
 
     // The sticky filter block's height varies (wrapping chips, mode switch),
-    // so the date headings' sticky offset is kept in a CSS variable.
+    // so the date sections' anchor scroll offset is kept in a CSS variable.
     this.resizeObserver = new ResizeObserver(() => this.updateStickyOffset())
     this.resizeObserver.observe(this.stickyHeaderTarget)
     this.updateStickyOffset()
@@ -33,7 +33,6 @@ export default class extends Controller {
   updateStickyOffset() {
     this.element.style.setProperty("--filter-height", `${this.stickyHeaderTarget.offsetHeight}px`)
   }
-
   // URL beats the user's saved filter; the default is all categories.
   initialFilter() {
     const params = new URLSearchParams(window.location.search)
@@ -76,6 +75,23 @@ export default class extends Controller {
     this.persist()
   }
 
+  // The highlight in the date nav follows the scroll position: the topmost
+  // day under the filter bar is marked and kept scrolled into view.
+  highlightCurrentDate() {
+    const offset = this.stickyHeaderTarget.getBoundingClientRect().bottom + 8
+    const groups = this.dateGroupTargets.filter((group) => !group.classList.contains("hidden"))
+    const current = groups.findLast((group) => group.getBoundingClientRect().top <= offset) ?? groups[0]
+    if (!current) return
+
+    const href = `#${current.id}`
+    if (href === this.selectedDate) return
+    this.selectedDate = href
+    this.markDateLinks()
+
+    const link = this.dateLinkTargets.find((l) => l.getAttribute("href") === href)
+    link?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" })
+  }
+
   apply() {
     this.eventTargets.forEach((el) => {
       const matches = !this.value ||
@@ -110,10 +126,11 @@ export default class extends Controller {
     this.emptyMessageTarget.classList.toggle("hidden", anythingVisible)
 
     this.persist()
+    this.highlightCurrentDate()
   }
 
   // Days without matching events stay visible but grayed out and unclickable;
-  // the last clicked day is highlighted.
+  // the day currently scrolled into view is highlighted.
   markDateLinks() {
     this.dateLinkTargets.forEach((link) => {
       const group = document.getElementById(link.getAttribute("href").slice(1))
