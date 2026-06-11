@@ -39,10 +39,9 @@ volumes:
 asset_path: /rails/public/assets
 
 aliases:
-  console: app exec --interactive --reuse "bin/rails console"
-  shell: app exec --interactive --reuse "bash"
+  rc: app exec --interactive --reuse "bin/rails c"
+  bash: app exec --interactive --reuse "bash"
   logs: app logs -f
-  dbc: app exec --interactive --reuse "bin/rails dbconsole"
 
 builder:
   arch: amd64

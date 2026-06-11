@@ -13,22 +13,18 @@
     <div class="flex flex-wrap gap-2">
       <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-events-target="allChip" data-action="events#showAll">Alle</button>
       <% Event.organizations_by_type.each do |type, organizations| %>
-        <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-events-target="categoryChip" data-action="events#selectCategory" data-organizations="<%= organizations.to_json %>"><%= type %></button>
+        <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-events-target="categoryChip" data-action="events#selectCategory" data-category="<%= type %>" data-organizations="<%= organizations.to_json %>"><%= type %></button>
       <% end %>
     </div>
 
-    <button type="button" class="md:hidden mt-2 cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-action="events#toggleFilters">
-      Filter <span data-events-target="filterCount"></span>
-    </button>
-
-    <div class="hidden md:block" data-events-target="filterPanel">
-      <div class="mt-2 flex flex-wrap gap-2">
-        <% Event.organizations.each do |organization| %>
-          <button type="button" class="cursor-pointer flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1 text-sm" data-events-target="chip" data-action="events#toggleOrganization" data-organization="<%= organization %>">
+    <div class="hidden mt-2 flex flex-wrap gap-2" data-events-target="venuePanel">
+      <% Event.organizations_by_type.each do |type, organizations| %>
+        <% organizations.each do |organization| %>
+          <button type="button" class="hidden cursor-pointer flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1 text-sm" data-events-target="chip" data-action="events#toggleOrganization" data-organization="<%= organization %>" data-category="<%= type %>">
             <span class="inline-block h-2 w-2 rounded-full <%= organization_accent_color(organization) %>"></span><%= organization %>
           </button>
         <% end %>
-      </div>
+      <% end %>
     </div>
 
     <nav class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-3 mt-2">

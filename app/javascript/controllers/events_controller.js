@@ -2,17 +2,20 @@ import { Controller } from "@hotwired/stimulus"
 
 const STORAGE_KEY = "ibk-dashboard-organizations"
 
-// Client-side event filtering: an empty selection means "show everything".
+// Client-side event filtering: categories act as tabs, and the active
+// category's venues can be toggled individually. No category ("Alle") with an
+// empty selection means "show everything".
 // Selection is read from the URL (shareable) or localStorage (returning visitors).
 export default class extends Controller {
   static targets = [
     "event", "dateGroup", "dateLink", "chip", "categoryChip", "allChip",
-    "filterPanel", "filterCount", "emptyMessage", "stickyHeader"
+    "venuePanel", "emptyMessage", "stickyHeader"
   ]
   static values = { defaultSelection: Array }
 
   connect() {
     this.selected = new Set(this.initialSelection())
+    this.category = this.deriveCategory()
     this.apply()
 
     // The sticky filter block's height varies (wrapping chips, toggled panel),
@@ -47,6 +50,19 @@ export default class extends Controller {
     return this.defaultSelectionValue
   }
 
+  // The category isn't persisted; it's recovered from whichever category
+  // contains all selected venues. Cross-category selections (e.g. from an old
+  // shared URL) still filter, they just don't light up a category tab.
+  deriveCategory() {
+    if (this.selected.size === 0) return null
+
+    const match = this.categoryChipTargets.find((chip) => {
+      const organizations = JSON.parse(chip.dataset.organizations)
+      return [...this.selected].every((organization) => organizations.includes(organization))
+    })
+    return match ? match.dataset.category : null
+  }
+
   toggleOrganization(event) {
     const organization = event.currentTarget.dataset.organization
     if (this.selected.has(organization)) {
@@ -59,22 +75,19 @@ export default class extends Controller {
 
   // Categories behave like tabs: exactly one category's venues, or "Alle".
   selectCategory(event) {
-    const organizations = JSON.parse(event.currentTarget.dataset.organizations)
-    this.selected = new Set(organizations)
+    this.category = event.currentTarget.dataset.category
+    this.selected = new Set(JSON.parse(event.currentTarget.dataset.organizations))
     this.apply()
   }
 
   showAll() {
+    this.category = null
     this.selected.clear()
     this.apply()
   }
 
-  toggleFilters() {
-    this.filterPanelTarget.classList.toggle("hidden")
-  }
-
   apply() {
-    const showEverything = this.selected.size === 0
+    const showEverything = this.selected.size === 0 && !this.category
 
     this.eventTargets.forEach((el) => {
       const visible = showEverything || this.selected.has(el.dataset.organization)
@@ -91,20 +104,17 @@ export default class extends Controller {
       link.classList.toggle("hidden", !group || group.classList.contains("hidden"))
     })
 
+    this.venuePanelTarget.classList.toggle("hidden", !this.category)
     this.chipTargets.forEach((chip) => {
+      chip.classList.toggle("hidden", chip.dataset.category !== this.category)
       this.markChip(chip, this.selected.has(chip.dataset.organization))
     })
 
     this.categoryChipTargets.forEach((chip) => {
-      const organizations = JSON.parse(chip.dataset.organizations)
-      const exactMatch = organizations.length === this.selected.size &&
-        organizations.every((organization) => this.selected.has(organization))
-      this.markChip(chip, exactMatch)
+      this.markChip(chip, chip.dataset.category === this.category)
     })
 
     this.markChip(this.allChipTarget, showEverything)
-
-    this.filterCountTarget.textContent = showEverything ? "" : `(${this.selected.size})`
 
     const anythingVisible = this.dateGroupTargets.some((group) => !group.classList.contains("hidden"))
     this.emptyMessageTarget.classList.toggle("hidden", anythingVisible)
