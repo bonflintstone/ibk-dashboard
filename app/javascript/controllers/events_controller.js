@@ -16,6 +16,7 @@ export default class extends Controller {
     const { mode, value } = this.initialFilter()
     this.mode = mode
     this.value = value
+    this.selectedDate = window.location.hash.startsWith("#date-") ? window.location.hash : null
     this.apply()
 
     // The sticky filter block's height varies (wrapping chips, mode switch),
@@ -69,6 +70,12 @@ export default class extends Controller {
     this.apply()
   }
 
+  selectDate(event) {
+    this.selectedDate = event.currentTarget.getAttribute("href")
+    this.markDateLinks()
+    this.persist()
+  }
+
   apply() {
     this.eventTargets.forEach((el) => {
       const matches = !this.value ||
@@ -81,10 +88,7 @@ export default class extends Controller {
       group.classList.toggle("hidden", !hasVisibleEvents)
     })
 
-    this.dateLinkTargets.forEach((link) => {
-      const group = document.getElementById(link.getAttribute("href").slice(1))
-      link.classList.toggle("hidden", !group || group.classList.contains("hidden"))
-    })
+    this.markDateLinks()
 
     this.panelTargets.forEach((panel) => {
       panel.classList.toggle("hidden", panel.dataset.mode !== this.mode)
@@ -108,6 +112,24 @@ export default class extends Controller {
     this.persist()
   }
 
+  // Days without matching events stay visible but grayed out and unclickable;
+  // the last clicked day is highlighted.
+  markDateLinks() {
+    this.dateLinkTargets.forEach((link) => {
+      const group = document.getElementById(link.getAttribute("href").slice(1))
+      const empty = !group || group.classList.contains("hidden")
+      link.classList.toggle("pointer-events-none", empty)
+      link.classList.toggle("opacity-40", empty)
+      link.toggleAttribute("aria-disabled", empty)
+
+      const active = link.getAttribute("href") === this.selectedDate
+      this.markChip(link, active)
+      const weekday = link.querySelector("span")
+      weekday.classList.toggle("text-gray-500", !active)
+      weekday.classList.toggle("text-gray-300", active)
+    })
+  }
+
   markChip(chip, active) {
     chip.classList.toggle("bg-gray-900", active)
     chip.classList.toggle("border-gray-900", active)
@@ -119,7 +141,8 @@ export default class extends Controller {
     const params = new URLSearchParams()
     if (this.value) params.set(this.mode, this.value)
     const query = params.toString()
-    window.history.replaceState(null, "", query ? `?${query}` : window.location.pathname)
+    const url = `${window.location.pathname}${query ? `?${query}` : ""}${this.selectedDate ?? ""}`
+    window.history.replaceState(null, "", url)
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ mode: this.mode, value: this.value }))
   }

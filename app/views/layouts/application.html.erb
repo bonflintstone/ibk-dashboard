@@ -20,11 +20,17 @@
   </head>
 
   <body class="bg-gray-50 text-gray-900">
-    <main class="container mx-auto mt-4 px-4 flex">
+    <%# pb keeps the last content clear of the fixed footer bar %>
+    <main class="container mx-auto mt-4 flex px-4 pb-14">
       <%= yield %>
     </main>
-    <footer class="container mx-auto px-4 mt-8 mb-12 text-sm text-gray-500">
-      <%= link_to "Impressum", imprint_path, class: "underline" %>
+    <footer class="fixed inset-x-0 bottom-0 z-20 border-t border-gray-200 bg-gray-50 py-2 text-sm text-gray-500">
+      <%# mirrors the wrappers around the page content so the link aligns with it %>
+      <div class="container mx-auto px-4">
+        <div class="mx-auto w-full max-w-2xl">
+          <%= link_to "Impressum", imprint_path, class: "underline" %>
+        </div>
+      </div>
     </footer>
   </body>
 </html>

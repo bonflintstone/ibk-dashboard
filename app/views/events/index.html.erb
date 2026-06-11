@@ -38,7 +38,7 @@
 
     <nav class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-3 mt-2">
       <% events_by_date.each_key do |date| %>
-        <a href="#date-<%= date.iso8601 %>" class="flex shrink-0 flex-col items-center rounded-lg border border-gray-300 bg-white px-3 py-1 leading-tight" data-events-target="dateLink">
+        <a href="#date-<%= date.iso8601 %>" class="flex shrink-0 flex-col items-center rounded-lg border border-gray-300 bg-white px-3 py-1 leading-tight" data-events-target="dateLink" data-action="events#selectDate">
           <span class="text-xs text-gray-500"><%= date == Date.today ? "Heute" : l(date, format: "%a") %></span>
           <span class="font-bold tabular-nums"><%= date.day %></span>
         </a>
