@@ -39,3 +39,6 @@ gem "rspec-rails", "~> 8.0", :groups => [:development, :test]
 gem "anthropic", "~> 1.48"
 
 gem "rails_admin", "~> 3.3"
+
+gem "rails-i18n", "~> 8.1"
+gem "rails_admin-i18n", "~> 1.20"

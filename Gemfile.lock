@@ -272,6 +272,9 @@ GEM
     rails-html-sanitizer (1.6.2)
       loofah (~> 2.21)
       nokogiri (>= 1.15.7, != 1.16.7, != 1.16.6, != 1.16.5, != 1.16.4, != 1.16.3, != 1.16.2, != 1.16.1, != 1.16.0.rc1, != 1.16.0)
+    rails-i18n (8.1.0)
+      i18n (>= 0.7, < 2)
+      railties (>= 8.0.0, < 9)
     rails_admin (3.3.0)
       activemodel-serializers-xml (>= 1.0)
       csv
@@ -279,6 +282,7 @@ GEM
       nested_form (~> 0.3)
       rails (>= 6.0, < 9)
       turbo-rails (>= 1.0, < 3)
+    rails_admin-i18n (1.20.2)
     railties (8.0.4)
       actionpack (= 8.0.4)
       activesupport (= 8.0.4)
@@ -447,7 +451,9 @@ DEPENDENCIES
   propshaft
   puma (>= 5.0)
   rails (~> 8.0.0)
+  rails-i18n (~> 8.1)
   rails_admin (~> 3.3)
+  rails_admin-i18n (~> 1.20)
   rspec-rails (~> 8.0)
   rubocop-rails-omakase
   selenium-webdriver
