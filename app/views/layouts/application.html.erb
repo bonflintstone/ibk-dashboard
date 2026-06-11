@@ -44,8 +44,12 @@
           <%= link_to "Impressum", imprint_path, class: "underline" %>
           <button type="button" class="cursor-pointer underline" data-action="modal#open">Event eintragen</button>
 
-          <dialog class="m-auto w-full max-w-md rounded-xl p-6 backdrop:bg-gray-900/50"
-                  data-modal-target="dialog" data-action="click->modal#closeOnBackdrop">
+          <%# Opened non-modally (dialog.show()): showModal() would put the dialog
+              in the browser's top layer, which renders above the hCaptcha
+              challenge popup. With plain z-indexes the captcha stacks on top. %>
+          <div class="hidden fixed inset-0 z-30 bg-gray-900/50" data-modal-target="backdrop" data-action="click->modal#close"></div>
+          <dialog class="fixed inset-0 z-40 m-auto h-fit max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-xl"
+                  data-modal-target="dialog" data-action="keydown.esc@window->modal#close">
             <div class="flex items-center justify-between">
               <h2 class="text-xl font-bold text-gray-900">Neues Event</h2>
               <button type="button" class="cursor-pointer text-2xl leading-none text-gray-500" data-action="modal#close" aria-label="Schließen">&times;</button>
