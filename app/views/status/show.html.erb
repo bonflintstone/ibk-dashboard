@@ -1,7 +1,18 @@
 <div class="mb-16">
   <h1 class="text-3xl font-bold">Status</h1>
 
-  <h2 class="text-xl font-bold mt-6 mb-2">Scrapers</h2>
+  <% if notice %>
+    <p class="mt-3 rounded border border-green-300 bg-green-100 px-3 py-2"><%= notice %></p>
+  <% end %>
+  <% if alert %>
+    <p class="mt-3 rounded border border-red-300 bg-red-100 px-3 py-2"><%= alert %></p>
+  <% end %>
+
+  <div class="flex items-center gap-4 mt-6 mb-2">
+    <h2 class="text-xl font-bold">Scrapers</h2>
+    <%= button_to "Refetch all", status_refetch_path,
+          class: "cursor-pointer rounded border border-gray-300 bg-white px-3 py-1 text-sm font-medium" %>
+  </div>
 
   <% if @refetch_event %>
     <p class="mb-3">
@@ -19,6 +30,7 @@
         <th class="p-2">Last run</th>
         <th class="p-2">Events</th>
         <th class="p-2">Error</th>
+        <th class="p-2"></th>
       </tr>
     </thead>
     <tbody>
@@ -49,6 +61,10 @@
                 <p class="text-sm text-gray-500">Last success: <%= runs[:last_success].created_at.strftime("%d.%m.%Y %H:%M") %></p>
               <% end %>
             <% end %>
+          </td>
+          <td class="p-2">
+            <%= button_to "Refetch", status_refetch_path(organization: scraper),
+                  class: "cursor-pointer rounded border border-gray-300 bg-white px-2 py-1 text-sm" %>
           </td>
         </tr>
       <% end %>

@@ -1,5 +1,9 @@
 class RefetchJob < ApplicationJob
-  def perform(*args)
-    RefetchAll.call
+  def perform(organization = nil)
+    if organization
+      RefetchAll.refetch(organization)
+    else
+      RefetchAll.call
+    end
   end
 end

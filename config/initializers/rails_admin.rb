@@ -1,12 +1,8 @@
 RailsAdmin.config do |config|
   config.asset_source = :importmap
 
-  config.authenticate_with do
-    authenticate_or_request_with_http_basic("ibk-dashboard admin") do |_username, password|
-      ENV["ADMIN_PASSWORD"].present? &&
-        ActiveSupport::SecurityUtils.secure_compare(password, ENV["ADMIN_PASSWORD"])
-    end
-  end
+  config.parent_controller = "::ApplicationController"
+  config.authenticate_with { authenticate_admin! }
 
   config.included_models = %w[Event InstagramProfile ScraperRun RefetchEvent Visit]
 

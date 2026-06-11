@@ -14,7 +14,18 @@ class RefetchAll
   class EmptyScrape < StandardError; end
 
   def self.call
-    SCRAPERS.each do |organization, fetcher|
+    organizations.each { |organization| refetch(organization) }
+
+    RefetchEvent.create(new_event_count: Event.count)
+  end
+
+  # Every refetchable organization: static scrapers plus Instagram profiles.
+  def self.organizations
+    SCRAPERS.keys + InstagramProfile.order(:organization).pluck(:organization)
+  end
+
+  def self.refetch(organization)
+    if (fetcher = SCRAPERS[organization])
       ScraperRun.record(organization) do
         # If the scraper raises, the rollback keeps the previously
         # scraped events instead of leaving the organization empty.
@@ -25,15 +36,12 @@ class RefetchAll
           raise EmptyScrape, "scraper returned 0 events" if Event.where(source: :scraper, organization:).none?
         end
       end
+    else
+      # FetchInstagram replaces a profile's events transactionally itself, so
+      # it can skip the Claude API call when nothing was posted. Unlike the
+      # scrapers above, 0 extracted events counts as a successful run.
+      profile = InstagramProfile.find_by!(organization:)
+      ScraperRun.record(organization) { FetchInstagram.call(profile) }
     end
-
-    # FetchInstagram replaces a profile's events transactionally itself, so
-    # it can skip the Claude API call when nothing was posted. Unlike the
-    # scrapers above, 0 extracted events counts as a successful run.
-    InstagramProfile.find_each do |profile|
-      ScraperRun.record(profile.organization) { FetchInstagram.call(profile) }
-    end
-
-    RefetchEvent.create(new_event_count: Event.count)
   end
 end
