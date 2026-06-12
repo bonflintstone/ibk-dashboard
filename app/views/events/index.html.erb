@@ -1,12 +1,6 @@
 <div class="w-full max-w-2xl mx-auto" data-controller="events" data-action="scroll@window->events#highlightCurrentDate">
   <h1 class="text-3xl font-bold tracking-tight">IBK Dashboard</h1>
 
-  <% if @refetch_event %>
-    <p class="mt-1 text-sm text-gray-500">
-      Last updated: <%= @refetch_event.created_at.strftime("%d.%m.%Y %H:%M") %>
-    </p>
-  <% end %>
-
   <% events_by_date = @events.group_by(&:date) %>
   <%# Chips reflect what is actually on the page: only categories and venues
       with upcoming events. Filtering is one-dimensional — by category, by
