@@ -4,7 +4,11 @@ RailsAdmin.config do |config|
   config.parent_controller = "::ApplicationController"
   config.authenticate_with { authenticate_admin! }
 
-  config.included_models = %w[Event InstagramProfile ScraperRun RefetchEvent Visit]
+  # All app models, without framework internals (SolidQueue, Turbo, ...)
+  config.included_models = Dir[Rails.root.join("app/models/**/*.rb")]
+    .reject { |file| file.include?("/concerns/") }
+    .map { |file| file[%r{app/models/(.*)\.rb\z}, 1].camelize }
+    .excluding("ApplicationRecord")
 
   config.actions do
     dashboard                     # mandatory
