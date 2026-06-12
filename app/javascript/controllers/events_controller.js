@@ -14,7 +14,7 @@ const STORAGE_KEY = "ibk-dashboard-filter"
 export default class extends Controller {
   static targets = [
     "event", "dateGroup", "dateLink", "panel", "navRow", "navButton",
-    "selectionBar", "selectionLabel", "bookmarkButton",
+    "selectionBar", "selectionLabel", "shareButton", "bookmarkButton",
     "emptyMessage", "stickyHeader"
   ]
 
@@ -185,6 +185,7 @@ export default class extends Controller {
     this.selectionBarTarget.classList.toggle("hidden", !selected)
     this.selectionBarTarget.classList.toggle("flex", selected)
     this.selectionLabelTarget.textContent = this.mode === "bookmarked" ? "Gemerkt" : this.value
+    this.shareButtonTarget.classList.toggle("hidden", this.mode !== "bookmarked")
 
     this.navButtonTargets.forEach((button) => {
       const active = (this.expandedPanel ?? "all") === button.dataset.mode

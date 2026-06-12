@@ -31,10 +31,10 @@ RSpec.describe "Events page" do
     expect(response.body).to include("data-category=\"Andere\"")
   end
 
-  it "renders the new-event and share-bookmarks modals in the footer" do
+  it "renders the new-event modal in the footer and the share-bookmarks modal in the nav" do
     get root_path
 
-    expect(response.body).to include("Event eintragen")
+    expect(response.body).to include("Neues Event")
     expect(response.body).to include("data-controller=\"modal\"")
     expect(response.body).to include("<dialog")
     expect(response.body).to include("Gemerkte teilen")
