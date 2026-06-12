@@ -9,7 +9,8 @@ class RefetchAll
     "Tiroler Landestheater" => FetchTirolerLandestheater,
     "Innsbruck Music Hall" => FetchMusichall,
     "SNKTBRTLM" => FetchSnktbrtlm,
-    "Gans Anders" => FetchGansAnders
+    "Gans Anders" => FetchGansAnders,
+    "Montagu" => FetchMontagu
   }.freeze
 
   # Venues with only a handful of events per year — an empty scrape is
