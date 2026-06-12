@@ -1,10 +1,10 @@
 require "rails_helper"
 
 RSpec.describe "Events page" do
-  it "renders all upcoming events with filter chips and date navigation" do
-    Event.create!(name: "Konzert", location: "Treibhaus", organization: "Treibhaus",
-                  datetime: 1.day.from_now, link: "https://example.com", source: :scraper,
-                  category: "Konzerte")
+  it "renders all upcoming events with filter nav, bookmark toggles and date navigation" do
+    konzert = Event.create!(name: "Konzert", location: "Treibhaus", organization: "Treibhaus",
+                            datetime: 1.day.from_now, link: "https://example.com", source: :scraper,
+                            category: "Konzerte")
     Event.create!(name: "Filmabend", location: "Brux", organization: "Brux",
                   datetime: 2.days.from_now, link: "https://example.com/film", source: :scraper,
                   category: "Kultur")
@@ -16,6 +16,9 @@ RSpec.describe "Events page" do
     expect(response.body).to include("data-controller=\"events\"")
     expect(response.body).to include("data-category=\"Konzerte\"").and include("data-category=\"Kultur\"")
     expect(response.body).to include("data-organization=\"Treibhaus\"")
+    expect(response.body).to include(">Alle<").and include("Kategorie").and include("Venue").and include(">Gemerkt<")
+    expect(response.body).to include("data-bookmark-key=\"Konzert|#{konzert.datetime.iso8601}|Treibhaus\"")
+    expect(response.body).to include("events#toggleBookmark")
     expect(response.body).to include("#date-#{1.day.from_now.to_date.iso8601}")
   end
 

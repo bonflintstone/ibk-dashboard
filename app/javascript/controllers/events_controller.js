@@ -1,28 +1,33 @@
 import { Controller } from "@hotwired/stimulus"
 
 const STORAGE_KEY = "ibk-dashboard-filter"
+const BOOKMARKS_KEY = "ibk-dashboard-bookmarks"
 
-// Client-side event filtering along ONE dimension at a time: a three-way
-// mode toggle switches between no filter ("Alle"), filtering by category and
-// filtering by venue; within category/venue at most one chip is selected
-// (tapping the active chip deselects it). On mobile the chip row is
-// collapsed behind an arrow by default.
-// The filter is read from the URL (shareable) or localStorage (returning visitors).
+// Client-side event filtering along ONE dimension at a time. The nav offers
+// "Alle", "Kategorie"/"Venue" (which expand a chip panel below; clicking
+// again collapses it) and "Gemerkt" (events bookmarked in this browser).
+// Picking a chip or "Gemerkt" replaces the nav with a back button plus the
+// active selection; back returns to "Alle".
+// The filter is read from the URL (shareable) or localStorage (returning
+// visitors); bookmarks live only in localStorage.
 export default class extends Controller {
   static targets = [
-    "event", "dateGroup", "dateLink", "chip", "modeChip", "panel",
-    "emptyMessage", "stickyHeader", "chipsRow", "chipsArrow"
+    "event", "dateGroup", "dateLink", "panel", "navRow", "navButton",
+    "selectionBar", "selectionLabel", "bookmarkButton",
+    "emptyMessage", "stickyHeader"
   ]
 
   connect() {
+    this.bookmarks = this.loadBookmarks()
     const { mode, value } = this.initialFilter()
     this.mode = mode
     this.value = value
-    this.chipsExpanded = false
+    this.expandedPanel = null
     this.selectedDate = window.location.hash.startsWith("#date-") ? window.location.hash : null
+    this.markBookmarkButtons()
     this.apply()
 
-    // The sticky filter block's height varies (wrapping chips, mode switch),
+    // The sticky filter block's height varies (wrapping chips, selection bar),
     // so the date sections' anchor scroll offset is kept in a CSS variable.
     this.resizeObserver = new ResizeObserver(() => this.updateStickyOffset())
     this.resizeObserver.observe(this.stickyHeaderTarget)
@@ -36,17 +41,20 @@ export default class extends Controller {
   updateStickyOffset() {
     this.element.style.setProperty("--filter-height", `${this.stickyHeaderTarget.offsetHeight}px`)
   }
+
   // URL beats the user's saved filter; the default is no filter.
   initialFilter() {
     const params = new URLSearchParams(window.location.search)
     if (params.has("category")) return { mode: "category", value: params.get("category") }
     if (params.has("venue")) return { mode: "venue", value: params.get("venue") }
+    if (params.has("gemerkt")) return { mode: "bookmarked", value: null }
     // links shared before the one-dimensional filter
     if (params.has("organizations[]")) return { mode: "venue", value: params.get("organizations[]") }
 
     try {
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY))
-      if (stored?.mode) return { mode: stored.mode, value: stored.value ?? null }
+      if (stored?.mode === "bookmarked") return { mode: "bookmarked", value: null }
+      if (stored?.mode && stored.value) return { mode: stored.mode, value: stored.value }
     } catch {
       // fall through to the default
     }
@@ -54,25 +62,46 @@ export default class extends Controller {
     return { mode: "all", value: null }
   }
 
-  selectMode(event) {
-    this.mode = event.currentTarget.dataset.mode
+  showAll() {
+    this.mode = "all"
     this.value = null
-    // Picking a chip mode is a clear intent to filter, so reveal the chips
-    // even on mobile, where they start out collapsed.
-    this.chipsExpanded = this.mode !== "all"
+    this.expandedPanel = null
     this.apply()
   }
 
-  toggleChips() {
-    this.chipsExpanded = !this.chipsExpanded
-    this.updateChipsRow()
+  // "Kategorie" / "Venue" don't filter by themselves — they expand and
+  // collapse their chip panel.
+  togglePanel(event) {
+    const mode = event.currentTarget.dataset.mode
+    this.expandedPanel = this.expandedPanel === mode ? null : mode
+    this.apply()
   }
 
-  // Tapping the active chip deselects it (back to "Alle").
   selectChip(event) {
-    const value = event.currentTarget.dataset.value
-    this.value = this.value === value ? null : value
+    this.mode = event.currentTarget.dataset.mode
+    this.value = event.currentTarget.dataset.value
+    this.expandedPanel = null
     this.apply()
+  }
+
+  selectBookmarked() {
+    this.mode = "bookmarked"
+    this.value = null
+    this.expandedPanel = null
+    this.apply()
+  }
+
+  // The button sits inside the event's link, so the click must not navigate.
+  toggleBookmark(event) {
+    event.preventDefault()
+    event.stopPropagation()
+
+    const key = event.currentTarget.closest("[data-events-target~=event]").dataset.bookmarkKey
+    this.bookmarks.has(key) ? this.bookmarks.delete(key) : this.bookmarks.add(key)
+    localStorage.setItem(BOOKMARKS_KEY, JSON.stringify([...this.bookmarks]))
+
+    this.markBookmarkButtons()
+    if (this.mode === "bookmarked") this.apply()
   }
 
   selectDate(event) {
@@ -100,7 +129,9 @@ export default class extends Controller {
 
   apply() {
     this.eventTargets.forEach((el) => {
-      const matches = !this.value ||
+      const matches =
+        this.mode === "bookmarked" ? this.bookmarks.has(el.dataset.bookmarkKey) :
+        !this.value ? true :
         (this.mode === "category" ? el.dataset.category : el.dataset.organization) === this.value
       el.classList.toggle("hidden", !matches)
     })
@@ -111,28 +142,45 @@ export default class extends Controller {
     })
 
     this.markDateLinks()
-
-    this.panelTargets.forEach((panel) => {
-      panel.classList.toggle("hidden", panel.dataset.mode !== this.mode)
-    })
-
-    this.chipTargets.forEach((chip) => {
-      this.markChip(chip, chip.dataset.mode === this.mode && chip.dataset.value === this.value)
-    })
-
-    this.updateChipsRow()
-
-    this.modeChipTargets.forEach((chip) => {
-      const active = chip.dataset.mode === this.mode
-      chip.classList.toggle("bg-gray-900", active)
-      chip.classList.toggle("text-white", active)
-    })
+    this.updateNav()
 
     const anythingVisible = this.dateGroupTargets.some((group) => !group.classList.contains("hidden"))
     this.emptyMessageTarget.classList.toggle("hidden", anythingVisible)
 
     this.persist()
     this.highlightCurrentDate()
+  }
+
+  // While a filter is selected the nav row gives way to the selection bar
+  // (back button + active selection); otherwise the nav row shows, with the
+  // expanded panel's button highlighted ("Alle" when none is).
+  updateNav() {
+    const selected = this.mode === "bookmarked" || this.value !== null
+
+    this.navRowTarget.classList.toggle("hidden", selected)
+    this.navRowTarget.classList.toggle("flex", !selected)
+    this.selectionBarTarget.classList.toggle("hidden", !selected)
+    this.selectionBarTarget.classList.toggle("flex", selected)
+    this.selectionLabelTarget.textContent = this.mode === "bookmarked" ? "Gemerkt" : this.value
+
+    this.navButtonTargets.forEach((button) => {
+      const active = (this.expandedPanel ?? "all") === button.dataset.mode
+      button.classList.toggle("bg-gray-900", active)
+      button.classList.toggle("text-white", active)
+
+      const chevron = button.querySelector("svg")
+      if (chevron) {
+        const expanded = this.expandedPanel === button.dataset.mode
+        chevron.classList.toggle("rotate-180", expanded)
+        button.setAttribute("aria-expanded", expanded)
+      }
+    })
+
+    this.panelTargets.forEach((panel) => {
+      const show = !selected && panel.dataset.mode === this.expandedPanel
+      panel.classList.toggle("flex", show)
+      panel.classList.toggle("hidden", !show)
+    })
   }
 
   // Days without matching events stay visible but grayed out and unclickable;
@@ -146,37 +194,40 @@ export default class extends Controller {
       link.toggleAttribute("aria-disabled", empty)
 
       const active = link.getAttribute("href") === this.selectedDate
-      this.markChip(link, active)
+      link.classList.toggle("bg-gray-900", active)
+      link.classList.toggle("border-gray-900", active)
+      link.classList.toggle("text-white", active)
+      link.classList.toggle("bg-white", !active)
       const weekday = link.querySelector("span")
       weekday.classList.toggle("text-gray-500", !active)
       weekday.classList.toggle("text-gray-300", active)
     })
   }
 
-  // In "Alle" mode there are no chips, so the row and its arrow disappear.
-  // Otherwise the row always shows on desktop (sm:flex) and on mobile only
-  // when expanded via the arrow.
-  updateChipsRow() {
-    const hasChips = this.mode !== "all"
-    this.chipsRowTarget.classList.toggle("sm:flex", hasChips)
-    this.chipsRowTarget.classList.toggle("flex", hasChips && this.chipsExpanded)
-    this.chipsRowTarget.classList.toggle("hidden", !hasChips || !this.chipsExpanded)
-
-    this.chipsArrowTarget.classList.toggle("hidden", !hasChips)
-    this.chipsArrowTarget.setAttribute("aria-expanded", this.chipsExpanded)
-    this.chipsArrowTarget.querySelector("svg").classList.toggle("rotate-180", this.chipsExpanded)
+  markBookmarkButtons() {
+    this.bookmarkButtonTargets.forEach((button) => {
+      const key = button.closest("[data-events-target~=event]").dataset.bookmarkKey
+      const on = this.bookmarks.has(key)
+      button.classList.toggle("text-gray-300", !on)
+      button.classList.toggle("hover:text-gray-500", !on)
+      button.classList.toggle("text-gray-900", on)
+      button.querySelector("svg").classList.toggle("fill-current", on)
+      button.setAttribute("aria-pressed", on)
+    })
   }
 
-  markChip(chip, active) {
-    chip.classList.toggle("bg-gray-900", active)
-    chip.classList.toggle("border-gray-900", active)
-    chip.classList.toggle("text-white", active)
-    chip.classList.toggle("bg-white", !active)
+  loadBookmarks() {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(BOOKMARKS_KEY)) ?? [])
+    } catch {
+      return new Set()
+    }
   }
 
   persist() {
     const params = new URLSearchParams()
-    if (this.value) params.set(this.mode, this.value)
+    if (this.mode === "bookmarked") params.set("gemerkt", "1")
+    else if (this.value) params.set(this.mode, this.value)
     const query = params.toString()
     const url = `${window.location.pathname}${query ? `?${query}` : ""}${this.selectedDate ?? ""}`
     window.history.replaceState(null, "", url)

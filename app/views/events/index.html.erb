@@ -9,42 +9,49 @@
 
   <% events_by_date = @events.group_by(&:date) %>
   <%# Chips reflect what is actually on the page: only categories and venues
-      with upcoming events. Filtering is one-dimensional — by category OR by
-      venue, switched via the mode toggle. %>
+      with upcoming events. Filtering is one-dimensional — by category, by
+      venue, or by bookmarks ("Gemerkt", stored in the browser). %>
   <% categories = Event::CATEGORIES.select { |category| @events.any? { |event| event.display_category == category } } %>
   <% venues = @events.map(&:organization).uniq.sort %>
+  <% chevron = capture do %>
+    <svg class="h-3 w-3 transition-transform" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.06l3.71-3.83a.75.75 0 1 1 1.08 1.04l-4.25 4.39a.75.75 0 0 1-1.08 0L5.23 8.27a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd"/>
+    </svg>
+  <% end %>
 
   <div class="sticky top-0 z-10 -mx-4 bg-gray-50 px-4 pt-4" data-events-target="stickyHeader">
-    <div class="flex items-center gap-2">
+    <div class="flex items-center" data-events-target="navRow">
       <div class="inline-flex rounded-full border border-gray-300 bg-white p-0.5 text-sm font-medium">
-        <button type="button" class="cursor-pointer rounded-full px-3 py-0.5" data-events-target="modeChip" data-action="events#selectMode" data-mode="all">Alle</button>
-        <button type="button" class="cursor-pointer rounded-full px-3 py-0.5" data-events-target="modeChip" data-action="events#selectMode" data-mode="category">Nach Kategorie</button>
-        <button type="button" class="cursor-pointer rounded-full px-3 py-0.5" data-events-target="modeChip" data-action="events#selectMode" data-mode="venue">Nach Venue</button>
+        <button type="button" class="cursor-pointer rounded-full px-3 py-0.5" data-events-target="navButton" data-action="events#showAll" data-mode="all">Alle</button>
+        <button type="button" class="flex cursor-pointer items-center gap-1 rounded-full px-3 py-0.5" data-events-target="navButton" data-action="events#togglePanel" data-mode="category" aria-expanded="false">Kategorie<%= chevron %></button>
+        <button type="button" class="flex cursor-pointer items-center gap-1 rounded-full px-3 py-0.5" data-events-target="navButton" data-action="events#togglePanel" data-mode="venue" aria-expanded="false">Venue<%= chevron %></button>
+        <button type="button" class="cursor-pointer rounded-full px-3 py-0.5" data-events-target="navButton" data-action="events#selectBookmarked" data-mode="bookmarked">Gemerkt</button>
       </div>
-
-      <%# On mobile the chip row below is collapsed by default; this arrow
-          expands it. Hidden on desktop, where the chips always show. %>
-      <button type="button" class="cursor-pointer p-1 text-gray-500 sm:hidden" data-events-target="chipsArrow" data-action="events#toggleChips" aria-expanded="false" aria-label="Filter anzeigen">
-        <svg class="h-4 w-4 transition-transform" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.06l3.71-3.83a.75.75 0 1 1 1.08 1.04l-4.25 4.39a.75.75 0 0 1-1.08 0L5.23 8.27a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd"/>
-        </svg>
-      </button>
     </div>
 
-    <div class="hidden mt-2 flex-wrap gap-2" data-events-target="chipsRow">
-      <div class="contents" data-events-target="panel" data-mode="category">
-        <% categories.each do |category| %>
-          <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-events-target="chip" data-action="events#selectChip" data-mode="category" data-value="<%= category %>"><%= category %></button>
-        <% end %>
-      </div>
+    <%# Replaces the nav row while a filter is selected: back to "Alle" plus
+        the active selection. %>
+    <div class="hidden items-center gap-2" data-events-target="selectionBar">
+      <button type="button" class="cursor-pointer p-1 text-gray-500" data-action="events#showAll" aria-label="Alle Events anzeigen">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/>
+        </svg>
+      </button>
+      <span class="rounded-full bg-gray-900 px-3 py-1 text-sm font-medium text-white" data-events-target="selectionLabel"></span>
+    </div>
 
-      <div class="hidden contents" data-events-target="panel" data-mode="venue">
-        <% venues.each do |venue| %>
-          <button type="button" class="cursor-pointer flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1 text-sm" data-events-target="chip" data-action="events#selectChip" data-mode="venue" data-value="<%= venue %>">
-            <span class="inline-block h-2 w-2 rounded-full <%= organization_accent_color(venue) %>"></span><%= venue %>
-          </button>
-        <% end %>
-      </div>
+    <div class="mt-2 hidden flex-wrap gap-2" data-events-target="panel" data-mode="category">
+      <% categories.each do |category| %>
+        <button type="button" class="cursor-pointer rounded-full border border-gray-300 bg-white px-3 py-1 text-sm font-medium" data-action="events#selectChip" data-mode="category" data-value="<%= category %>"><%= category %></button>
+      <% end %>
+    </div>
+
+    <div class="mt-2 hidden flex-wrap gap-2" data-events-target="panel" data-mode="venue">
+      <% venues.each do |venue| %>
+        <button type="button" class="flex cursor-pointer items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1 text-sm" data-action="events#selectChip" data-mode="venue" data-value="<%= venue %>">
+          <span class="inline-block h-2 w-2 rounded-full <%= organization_accent_color(venue) %>"></span><%= venue %>
+        </button>
+      <% end %>
     </div>
 
     <nav class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-3 mt-2">
@@ -62,7 +69,9 @@
       <h3 class="pt-4 pb-2 text-sm font-semibold uppercase tracking-wide text-gray-500"><%= l(date, format: "%A %d. %B") %></h3>
 
       <% events.each do |event| %>
-        <%= link_to event.link, target: "_blank", class: "block mb-3", data: { events_target: "event", organization: event.organization, category: event.display_category } do %>
+        <%# bookmark_key mirrors the model's uniqueness constraint, so bookmarks
+            survive the scraper re-importing events under new ids. %>
+        <%= link_to event.link, target: "_blank", class: "block mb-3", data: { events_target: "event", organization: event.organization, category: event.display_category, bookmark_key: "#{event.name}|#{event.datetime.iso8601}|#{event.organization}" } do %>
           <div class="flex gap-3 rounded-xl bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
             <div class="w-12 shrink-0 font-bold tabular-nums"><%= event.datetime.strftime("%H:%M") %></div>
             <div class="min-w-0 flex-1">
@@ -75,6 +84,11 @@
                 <p class="mt-1 text-sm text-gray-500 line-clamp-2"><%= event.description %></p>
               <% end %>
             </div>
+            <button type="button" class="-mt-1 -mr-1 h-fit shrink-0 cursor-pointer p-1 text-gray-300 hover:text-gray-500" data-events-target="bookmarkButton" data-action="events#toggleBookmark" aria-label="Event merken" aria-pressed="false">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c.94.13 1.657.954 1.657 1.902V21L12 17.25 4.75 21V5.224c0-.948.717-1.772 1.657-1.902a48.507 48.507 0 0 1 11.186 0Z"/>
+              </svg>
+            </button>
           </div>
         <% end %>
       <% end %>
