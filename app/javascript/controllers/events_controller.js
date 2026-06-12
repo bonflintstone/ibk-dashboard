@@ -1,15 +1,16 @@
 import { Controller } from "@hotwired/stimulus"
+import { cachedKeys, cacheKeys, pull, push, merge } from "bookmark_store"
 
 const STORAGE_KEY = "ibk-dashboard-filter"
-const BOOKMARKS_KEY = "ibk-dashboard-bookmarks"
 
 // Client-side event filtering along ONE dimension at a time. The nav offers
 // "Alle", "Kategorie"/"Venue" (which expand a chip panel below; clicking
-// again collapses it) and "Gemerkt" (events bookmarked in this browser).
+// again collapses it) and "Gemerkt" (bookmarked events).
 // Picking a chip or "Gemerkt" replaces the nav with a back button plus the
 // active selection; back returns to "Alle".
 // The filter is read from the URL (shareable) or localStorage (returning
-// visitors); bookmarks live only in localStorage.
+// visitors). Bookmarks live in an anonymous backend list (bookmark_store);
+// opening a ?sync= link merges this browser's list with the shared one.
 export default class extends Controller {
   static targets = [
     "event", "dateGroup", "dateLink", "panel", "navRow", "navButton",
@@ -18,7 +19,9 @@ export default class extends Controller {
   ]
 
   connect() {
-    this.bookmarks = this.loadBookmarks()
+    this.bookmarks = cachedKeys()
+    // Stashed before apply(), whose persist() rewrites the URL without it.
+    this.syncToken = new URLSearchParams(window.location.search).get("sync")
     const { mode, value } = this.initialFilter()
     this.mode = mode
     this.value = value
@@ -26,6 +29,7 @@ export default class extends Controller {
     this.selectedDate = window.location.hash.startsWith("#date-") ? window.location.hash : null
     this.markBookmarkButtons()
     this.apply()
+    this.syncBookmarks()
 
     // The sticky filter block's height varies (wrapping chips, selection bar),
     // so the date sections' anchor scroll offset is kept in a CSS variable.
@@ -91,14 +95,33 @@ export default class extends Controller {
     this.apply()
   }
 
+  // Reconcile with the backend after the cache already painted: a ?sync=
+  // link merges this browser's list with the shared one (and jumps to
+  // "Gemerkt" so the result is visible), otherwise the list is pulled fresh.
+  async syncBookmarks() {
+    const synced = this.syncToken ? await merge(this.syncToken) : await pull()
+    const viaLink = this.syncToken !== null
+    this.syncToken = null
+    if (!synced) return
+
+    this.bookmarks = synced.keys
+    this.markBookmarkButtons()
+    if (viaLink) this.selectBookmarked()
+    else if (this.mode === "bookmarked") this.apply()
+  }
+
   // The button sits inside the event's link, so the click must not navigate.
+  // The UI updates optimistically; the backend write happens in the
+  // background and the cache covers any failure until the next sync.
   toggleBookmark(event) {
     event.preventDefault()
     event.stopPropagation()
 
     const key = event.currentTarget.closest("[data-events-target~=event]").dataset.bookmarkKey
-    this.bookmarks.has(key) ? this.bookmarks.delete(key) : this.bookmarks.add(key)
-    localStorage.setItem(BOOKMARKS_KEY, JSON.stringify([...this.bookmarks]))
+    const adding = !this.bookmarks.has(key)
+    adding ? this.bookmarks.add(key) : this.bookmarks.delete(key)
+    cacheKeys(this.bookmarks)
+    push(adding ? { add: [key] } : { remove: [key] })
 
     this.markBookmarkButtons()
     if (this.mode === "bookmarked") this.apply()
@@ -214,14 +237,6 @@ export default class extends Controller {
       button.querySelector("svg").classList.toggle("fill-current", on)
       button.setAttribute("aria-pressed", on)
     })
-  }
-
-  loadBookmarks() {
-    try {
-      return new Set(JSON.parse(localStorage.getItem(BOOKMARKS_KEY)) ?? [])
-    } catch {
-      return new Set()
-    }
   }
 
   persist() {

@@ -46,3 +46,6 @@ gem "rails_admin-i18n", "~> 1.20"
 
 # Web dashboard for Solid Queue jobs (admin-gated at /jobs)
 gem "mission_control-jobs", "~> 1.0"
+
+# QR codes for the bookmark-sync share modal
+gem "rqrcode", "~> 2.2"

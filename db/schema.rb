@@ -10,7 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_06_11_103426) do
+ActiveRecord::Schema[8.0].define(version: 2026_06_12_080000) do
+  create_table "bookmark_lists", force: :cascade do |t|
+    t.string "token", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["token"], name: "index_bookmark_lists_on_token", unique: true
+  end
+
+  create_table "bookmarks", force: :cascade do |t|
+    t.integer "bookmark_list_id", null: false
+    t.string "event_key", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bookmark_list_id", "event_key"], name: "index_bookmarks_on_bookmark_list_id_and_event_key", unique: true
+    t.index ["bookmark_list_id"], name: "index_bookmarks_on_bookmark_list_id"
+  end
+
   create_table "events", force: :cascade do |t|
     t.string "name"
     t.string "location"
@@ -60,4 +76,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_11_103426) do
     t.datetime "updated_at", null: false
     t.index ["week", "visitor_digest"], name: "index_visits_on_week_and_visitor_digest", unique: true
   end
+
+  add_foreign_key "bookmarks", "bookmark_lists"
 end

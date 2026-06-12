@@ -20,6 +20,11 @@ Rails.application.routes.draw do
 
   get "feed" => "events#feed", as: :feed, defaults: { format: "rss" }
 
+  resource :bookmarks, only: %i[show update] do
+    post :merge
+    get :qr
+  end
+
   get "status" => "status#show", as: :status
   post "status/refetch" => "status#refetch", as: :status_refetch
   get "impressum" => "pages#imprint", as: :imprint
