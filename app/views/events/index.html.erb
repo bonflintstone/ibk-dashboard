@@ -63,9 +63,7 @@
       <h3 class="pt-4 pb-2 text-sm font-semibold uppercase tracking-wide text-gray-500"><%= l(date, format: "%A %d. %B") %></h3>
 
       <% events.each do |event| %>
-        <%# bookmark_key mirrors the model's uniqueness constraint, so bookmarks
-            survive the scraper re-importing events under new ids. %>
-        <%= link_to event.link, target: "_blank", class: "block mb-3", data: { events_target: "event", organization: event.organization, category: event.display_category, bookmark_key: "#{event.name}|#{event.datetime.iso8601}|#{event.organization}" } do %>
+        <%= link_to event.link, target: "_blank", class: "block mb-3", data: { events_target: "event", organization: event.organization, category: event.display_category, bookmark_key: event.bookmark_key } do %>
           <div class="flex gap-3 rounded-xl bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
             <div class="w-12 shrink-0 font-bold tabular-nums"><%= event.datetime.strftime("%H:%M") %></div>
             <div class="min-w-0 flex-1">

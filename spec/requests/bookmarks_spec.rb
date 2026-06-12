@@ -91,6 +91,49 @@ RSpec.describe "Bookmarks API" do
     end
   end
 
+  describe "GET /bookmarks/calendar" do
+    def create_event(attributes = {})
+      Event.create!({ name: "Konzert", location: "Treibhaus", organization: "Treibhaus",
+                      datetime: Time.zone.local(2026, 6, 17, 20), link: "https://example.com/konzert",
+                      source: :scraper }.merge(attributes))
+    end
+
+    it "renders the bookmarked events as an iCalendar feed" do
+      bookmarked = create_event(description: "Mit Special Guest, danach Party; yay")
+      create_event(name: "Nicht gemerkt")
+      list = BookmarkList.create!
+      list.bookmarks.create!(event_key: bookmarked.bookmark_key)
+
+      get calendar_bookmarks_path(format: :ics), params: { token: list.token }
+
+      expect(response).to have_http_status(:success)
+      expect(response.media_type).to eq("text/calendar")
+      expect(response.body).to start_with("BEGIN:VCALENDAR")
+      expect(response.body).to include("SUMMARY:Konzert")
+      expect(response.body).to include("DTSTART:20260617T180000Z") # 20:00 Berlin = 18:00 UTC
+      expect(response.body).to include("Mit Special Guest\\, danach Party\\; yay")
+      expect(response.body).not_to include("Nicht gemerkt")
+    end
+
+    it "skips bookmarks of unpublished or since-deleted events" do
+      unapproved = create_event(name: "Unfreigegeben", source: :webform)
+      list = BookmarkList.create!
+      list.bookmarks.create!(event_key: unapproved.bookmark_key)
+      list.bookmarks.create!(event_key: "Geloescht|2026-06-17T20:00:00+02:00|Treibhaus")
+
+      get calendar_bookmarks_path(format: :ics), params: { token: list.token }
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).not_to include("BEGIN:VEVENT")
+    end
+
+    it "404s for an unknown token" do
+      get calendar_bookmarks_path(format: :ics), params: { token: "nope" }
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
   describe "GET /bookmarks/qr" do
     it "renders an SVG QR code of the sync link" do
       list = BookmarkList.create!

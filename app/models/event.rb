@@ -30,6 +30,10 @@ class Event < ApplicationRecord
 
   def date = datetime.to_date
 
+  # The identifier bookmarks are stored under (see Bookmark). Must match the
+  # key the events list renders into data-bookmark-key.
+  def bookmark_key = "#{name}|#{datetime.iso8601}|#{organization}"
+
   def display_category = category || "Andere"
 
   def source_enum = [ :scraper, :webform ] # for rails_admin

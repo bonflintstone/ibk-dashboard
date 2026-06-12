@@ -34,6 +34,15 @@ class BookmarksController < ApplicationController
     render json: { token: target.token, keys: target.keys }
   end
 
+  # Personal iCalendar feed: subscribing to it (webcal:// in Apple Calendar
+  # etc.) keeps a calendar in sync with the bookmarked events.
+  def calendar
+    list = BookmarkList.find_by(token: params[:token])
+    return head :not_found if list.nil?
+
+    render plain: IcsCalendar.generate(list.events), content_type: "text/calendar"
+  end
+
   def qr
     list = BookmarkList.find_by(token: params[:token])
     return head :not_found if list.nil?

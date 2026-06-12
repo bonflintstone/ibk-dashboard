@@ -7,4 +7,12 @@ class BookmarkList < ApplicationRecord
   has_many :bookmarks, dependent: :destroy
 
   def keys = bookmarks.pluck(:event_key)
+
+  # The bookmarked events that still exist in the database. Keys can't be
+  # parsed back into columns (names may contain the separator), so match by
+  # computing each event's key — fine at this table's size.
+  def events
+    wanted = keys.to_set
+    Event.published.order(:datetime).select { |event| wanted.include?(event.bookmark_key) }
+  end
 end

@@ -23,6 +23,7 @@ Rails.application.routes.draw do
   resource :bookmarks, only: %i[show update] do
     post :merge
     get :qr
+    get :calendar, defaults: { format: "ics" }
   end
 
   get "status" => "status#show", as: :status
