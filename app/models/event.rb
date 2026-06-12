@@ -7,7 +7,7 @@ class Event < ApplicationRecord
   ORGANIZATIONS = [
     "Theater Praesent", "Brux", "Tiroler Landestheater", "Kellertheater",
     "Treibhaus", "Die Bäckerei", "Innsbruck Music Hall", "Haus der Musik",
-    "SNKTBRTLM", "Gans Anders", "Montagu", "Andere"
+    "SNKTBRTLM", "Gans Anders", "Montagu", "Theater unter Sternen", "Andere"
   ].freeze
 
   # ORGANIZATIONS plus the organizations scraped via InstagramProfile.

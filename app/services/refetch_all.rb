@@ -10,12 +10,14 @@ class RefetchAll
     "Innsbruck Music Hall" => FetchMusichall,
     "SNKTBRTLM" => FetchSnktbrtlm,
     "Gans Anders" => FetchGansAnders,
-    "Montagu" => FetchMontagu
+    "Montagu" => FetchMontagu,
+    "Theater unter Sternen" => FetchTheaterUnterSternen
   }.freeze
 
   # Venues with only a handful of events per year — an empty scrape is
-  # legitimate there and doesn't indicate a broken scraper.
-  EMPTY_ALLOWED = [ "SNKTBRTLM", "Gans Anders" ].freeze
+  # legitimate there and doesn't indicate a broken scraper. Theater unter
+  # Sternen is a two-week summer festival, empty outside its season.
+  EMPTY_ALLOWED = [ "SNKTBRTLM", "Gans Anders", "Theater unter Sternen" ].freeze
 
   class EmptyScrape < StandardError; end
 
