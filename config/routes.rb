@@ -28,4 +28,5 @@ Rails.application.routes.draw do
   get "status" => "status#show", as: :status
   post "status/refetch" => "status#refetch", as: :status_refetch
   get "impressum" => "pages#imprint", as: :imprint
+  get "datenschutz" => "pages#privacy", as: :privacy
 end

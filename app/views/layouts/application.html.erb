@@ -14,9 +14,6 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icon.png">
     <%= favicon_link_tag asset_path("favicon.png") %>
-    <% if Hcaptcha.site_key.present? %>
-      <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
-    <% end %>
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
@@ -41,41 +38,46 @@
       <%# mirrors the wrappers around the page content so the link aligns with it %>
       <div class="container mx-auto px-4">
         <div class="mx-auto flex w-full max-w-2xl justify-between">
-          <%= link_to "Impressum", imprint_path, class: "underline" %>
-
-          <span data-controller="modal share-bookmarks">
-            <button type="button" class="cursor-pointer underline" data-action="modal#open share-bookmarks#prepare">Gemerkte teilen</button>
-
-            <div class="hidden fixed inset-0 z-30 bg-gray-900/50" data-modal-target="backdrop" data-action="click->modal#close"></div>
-            <dialog class="fixed inset-0 z-40 m-auto h-fit max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-xl"
-                    data-modal-target="dialog" data-action="keydown.esc@window->modal#close">
-              <div class="flex items-center justify-between">
-                <h2 class="text-xl font-bold text-gray-900">Gemerkte Events teilen</h2>
-                <button type="button" class="cursor-pointer text-2xl leading-none text-gray-500" data-action="modal#close" aria-label="Schließen">&times;</button>
-              </div>
-              <p class="mt-3 text-sm text-gray-600">Öffne diesen Link auf einem anderen Gerät oder scanne den QR-Code dort — die gemerkten Events beider Geräte werden zusammengeführt und bleiben ab dann synchron.</p>
-              <p class="hidden mt-3 text-sm text-red-700" data-share-bookmarks-target="error">Gerade nicht erreichbar — bitte später noch einmal versuchen.</p>
-              <img class="mx-auto mt-4 h-44 w-44" alt="QR-Code zum Synchronisieren der gemerkten Events" data-share-bookmarks-target="qr">
-              <p class="mt-4 break-all rounded-lg bg-gray-100 px-3 py-2 font-mono text-xs text-gray-700" data-share-bookmarks-target="link"></p>
-              <button type="button" class="mt-3 w-full cursor-pointer rounded-lg bg-gray-900 px-4 py-2 font-medium text-white" data-share-bookmarks-target="copyButton" data-action="share-bookmarks#copy">Link kopieren</button>
-            </dialog>
+          <span class="flex gap-3">
+            <%= link_to "Impressum", imprint_path, class: "underline" %>
+            <%= link_to "Datenschutz", privacy_path, class: "underline" %>
           </span>
 
-          <span data-controller="modal">
-            <button type="button" class="cursor-pointer underline" data-action="modal#open">Event eintragen</button>
+          <span class="flex gap-3">
+            <span data-controller="modal share-bookmarks">
+              <button type="button" class="cursor-pointer underline" data-action="modal#open share-bookmarks#prepare">Gemerkte teilen</button>
 
-            <%# Opened non-modally (dialog.show()): showModal() would put the dialog
-                in the browser's top layer, which renders above the hCaptcha
-                challenge popup. With plain z-indexes the captcha stacks on top. %>
-            <div class="hidden fixed inset-0 z-30 bg-gray-900/50" data-modal-target="backdrop" data-action="click->modal#close"></div>
-            <dialog class="fixed inset-0 z-40 m-auto h-fit max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-xl"
-                    data-modal-target="dialog" data-action="keydown.esc@window->modal#close">
-              <div class="flex items-center justify-between">
-                <h2 class="text-xl font-bold text-gray-900">Neues Event</h2>
-                <button type="button" class="cursor-pointer text-2xl leading-none text-gray-500" data-action="modal#close" aria-label="Schließen">&times;</button>
-              </div>
-              <%= render "events/form", event: Event.new %>
-            </dialog>
+              <div class="hidden fixed inset-0 z-30 bg-gray-900/50" data-modal-target="backdrop" data-action="click->modal#close"></div>
+              <dialog class="fixed inset-0 z-40 m-auto h-fit max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-xl"
+                      data-modal-target="dialog" data-action="keydown.esc@window->modal#close">
+                <div class="flex items-center justify-between">
+                  <h2 class="text-xl font-bold text-gray-900">Gemerkte Events teilen</h2>
+                  <button type="button" class="cursor-pointer text-2xl leading-none text-gray-500" data-action="modal#close" aria-label="Schließen">&times;</button>
+                </div>
+                <p class="mt-3 text-sm text-gray-600">Öffne diesen Link auf einem anderen Gerät oder scanne den QR-Code dort — die gemerkten Events beider Geräte werden zusammengeführt und bleiben ab dann synchron.</p>
+                <p class="hidden mt-3 text-sm text-red-700" data-share-bookmarks-target="error">Gerade nicht erreichbar — bitte später noch einmal versuchen.</p>
+                <img class="mx-auto mt-4 h-44 w-44" alt="QR-Code zum Synchronisieren der gemerkten Events" data-share-bookmarks-target="qr">
+                <p class="mt-4 break-all rounded-lg bg-gray-100 px-3 py-2 font-mono text-xs text-gray-700" data-share-bookmarks-target="link"></p>
+                <button type="button" class="mt-3 w-full cursor-pointer rounded-lg bg-gray-900 px-4 py-2 font-medium text-white" data-share-bookmarks-target="copyButton" data-action="share-bookmarks#copy">Link kopieren</button>
+              </dialog>
+            </span>
+
+            <span data-controller="modal">
+              <button type="button" class="cursor-pointer underline" data-action="modal#open">Event eintragen</button>
+
+              <%# Opened non-modally (dialog.show()): showModal() would put the dialog
+                  in the browser's top layer, which renders above the hCaptcha
+                  challenge popup. With plain z-indexes the captcha stacks on top. %>
+              <div class="hidden fixed inset-0 z-30 bg-gray-900/50" data-modal-target="backdrop" data-action="click->modal#close"></div>
+              <dialog class="fixed inset-0 z-40 m-auto h-fit max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-xl"
+                      data-modal-target="dialog" data-action="keydown.esc@window->modal#close">
+                <div class="flex items-center justify-between">
+                  <h2 class="text-xl font-bold text-gray-900">Neues Event</h2>
+                  <button type="button" class="cursor-pointer text-2xl leading-none text-gray-500" data-action="modal#close" aria-label="Schließen">&times;</button>
+                </div>
+                <%= render "events/form", event: Event.new %>
+              </dialog>
+            </span>
           </span>
         </div>
       </div>

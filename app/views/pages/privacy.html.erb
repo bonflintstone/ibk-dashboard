@@ -1,0 +1,95 @@
+<div>
+  <h1 class="text-3xl font-bold mb-4">Datenschutzerklärung</h1>
+
+  <p class="mb-6">
+    Diese Seite kommt ohne Tracking-Cookies, Werbedienste und Nutzerkonten aus.
+    Hier steht, welche Daten trotzdem anfallen und was damit passiert.
+  </p>
+
+  <h2 class="text-xl font-bold mb-2">Verantwortlicher</h2>
+
+  <p class="mb-6">
+    Frederik Bonfanti<br>
+    Innsbruck, Österreich<br>
+    Kontakt: <%= link_to "waxen_junkier.0v@icloud.com", "mailto:waxen_junkier.0v@icloud.com", class: "underline" %>
+  </p>
+
+  <h2 class="text-xl font-bold mb-2">Hosting und Server-Logs</h2>
+
+  <p class="mb-6">
+    Die Seite wird auf Servern der Hetzner Online GmbH (Deutschland) betrieben.
+    Beim Aufruf fallen technisch bedingt Server-Logs an (IP-Adresse, Zeitpunkt,
+    aufgerufene Seite, Browser-Kennung). Sie dienen ausschließlich dem sicheren
+    Betrieb und der Fehlersuche (Art. 6 Abs. 1 lit. f DSGVO) und werden nicht
+    mit anderen Daten zusammengeführt.
+  </p>
+
+  <h2 class="text-xl font-bold mb-2">Besucherzählung</h2>
+
+  <p class="mb-6">
+    Um zu wissen, wie viele Menschen die Seite nutzen, wird pro Besuch ein
+    anonymer Prüfwert (SHA-256-Hash) aus IP-Adresse, Browser-Kennung, einem
+    geheimen Schlüssel und der aktuellen Kalenderwoche gebildet. Die IP-Adresse
+    selbst wird dabei nie gespeichert, und weil die Kalenderwoche in den
+    Prüfwert einfließt, ist eine Wiedererkennung über die Woche hinaus
+    unmöglich. Es kommen dafür keine Cookies und keine Drittanbieter zum
+    Einsatz (Art. 6 Abs. 1 lit. f DSGVO).
+  </p>
+
+  <h2 class="text-xl font-bold mb-2">Cookies und lokaler Speicher</h2>
+
+  <p class="mb-4">
+    Es wird nur ein technisch notwendiges Session-Cookie gesetzt (für
+    Formular-Sicherheit und Hinweismeldungen). Tracking- oder Werbe-Cookies
+    gibt es nicht, daher ist auch kein Cookie-Banner nötig.
+  </p>
+
+  <p class="mb-6">
+    Gemerkte Events und die gewählte Filtereinstellung werden im lokalen
+    Speicher (localStorage) deines Browsers abgelegt — sie bleiben auf deinem
+    Gerät und lassen sich über die Browserdaten jederzeit löschen.
+  </p>
+
+  <h2 class="text-xl font-bold mb-2">Synchronisierung gemerkter Events</h2>
+
+  <p class="mb-6">
+    Wer die Funktion „Gemerkte teilen“ nutzt, legt auf dem Server eine anonyme
+    Merkliste an: gespeichert werden nur die gemerkten Events und ein zufälliger
+    Zugriffscode, keine personenbezogenen Daten. Wer den Link bzw. QR-Code
+    kennt, kann auf die Liste zugreifen.
+  </p>
+
+  <h2 class="text-xl font-bold mb-2">Event-Vorschläge</h2>
+
+  <p class="mb-4">
+    Beim Vorschlagen eines Events werden die eingegebenen Angaben (Link, Name,
+    Ort, Datum, Beschreibung) gespeichert und nach Prüfung veröffentlicht. Wird
+    „Aus Link befüllen“ genutzt, wird der Inhalt der verlinkten Seite zur
+    automatischen Extraktion der Eventdaten an Anthropic (Claude API, USA)
+    übermittelt — übertragen wird nur der Seiteninhalt, keine Daten über dich.
+  </p>
+
+  <p class="mb-6">
+    Zum Schutz vor automatisiertem Spam kommt im Event-Formular hCaptcha der
+    Intuition Machines, Inc. (USA) zum Einsatz (Art. 6 Abs. 1 lit. f DSGVO).
+    Dabei werden IP-Adresse und Browser-Informationen an hCaptcha übermittelt.
+    Der Dienst wird erst geladen, wenn das Formular tatsächlich geöffnet wird —
+    beim bloßen Besuch der Seite findet keine Verbindung statt. Details in der
+    <%= link_to "Datenschutzerklärung von hCaptcha", "https://www.hcaptcha.com/privacy", target: "_blank", class: "underline" %>.
+  </p>
+
+  <h2 class="text-xl font-bold mb-2">Deine Rechte</h2>
+
+  <p class="mb-6">
+    Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der
+    Verarbeitung, Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO).
+    Anfragen bitte an die oben genannte E-Mail-Adresse. Außerdem kannst du dich
+    bei der <%= link_to "österreichischen Datenschutzbehörde", "https://www.dsb.gv.at", target: "_blank", class: "underline" %> beschweren.
+  </p>
+
+  <p class="mb-6 text-sm text-gray-500">Stand: Juni 2026</p>
+
+  <p>
+    <%= link_to "Zurück zum Dashboard", root_path, class: "underline" %>
+  </p>
+</div>

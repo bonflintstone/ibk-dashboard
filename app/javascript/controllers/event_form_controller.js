@@ -65,6 +65,26 @@ export default class extends Controller {
     this.detailsTarget.classList.remove("hidden")
     this.detailsTarget.classList.add("flex")
     this.manualButtonTarget.classList.add("hidden")
+    this.loadCaptcha()
+  }
+
+  // hCaptcha is fetched only once someone actually opens the form, so plain
+  // visitors never talk to the third party (the form modal is on every page).
+  loadCaptcha() {
+    const container = this.element.querySelector(".h-captcha")
+    if (!container || container.querySelector("iframe")) return
+
+    if (window.hcaptcha) {
+      // Script already loaded (e.g. earlier Turbo page) — its auto-render
+      // already ran, so this fresh container has to be rendered explicitly.
+      window.hcaptcha.render(container)
+    } else if (!document.querySelector("script[src^='https://js.hcaptcha.com/']")) {
+      const script = document.createElement("script")
+      script.src = "https://js.hcaptcha.com/1/api.js"
+      script.async = true
+      script.defer = true
+      document.head.append(script)
+    }
   }
 
   showStatus(message) {
