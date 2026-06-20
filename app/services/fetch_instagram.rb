@@ -14,6 +14,9 @@ class FetchInstagram
 
   MODEL = :"claude-opus-4-8"
   MAX_ATTEMPTS = 3
+  # Cap on images sent per post; carousel ("sidecar") posts can hold many, but
+  # an event's details rarely span more than the first handful of slides.
+  MAX_IMAGES_PER_POST = 10
 
   EVENTS_SCHEMA = {
     type: "object",
@@ -87,9 +90,24 @@ class FetchInstagram
         url: "https://www.instagram.com/p/#{node["shortcode"]}/",
         published_on: Time.zone.at(node["taken_at_timestamp"]).to_date,
         caption: node.dig("edge_media_to_caption", "edges").first&.dig("node", "text").to_s,
-        image_url: node["display_url"]
+        image_urls: image_urls(node)
       }
     end
+  end
+
+  # A carousel ("sidecar") post carries several images under
+  # edge_sidecar_to_children; a single-photo post only has display_url.
+  # Event flyers often span multiple slides (lineup, dates, prices), so all
+  # of them are collected (capped by MAX_IMAGES_PER_POST).
+  def self.image_urls(node)
+    children = node.dig("edge_sidecar_to_children", "edges")
+    urls =
+      if children.present?
+        children.filter_map { |child| child.dig("node", "display_url") }
+      else
+        [ node["display_url"] ]
+      end
+    urls.compact.first(MAX_IMAGES_PER_POST)
   end
 
   def self.extract_events(posts, profile)
@@ -125,11 +143,13 @@ class FetchInstagram
 
       Today is #{Date.current.iso8601}. The venue: #{profile.organization}, located at #{profile.location}, Innsbruck.
 
-      You receive the venue's latest posts, each with its publish date, post URL, caption, and image
-      (often an event flyer or a monthly program). Extract every upcoming public event (today or later).
+      You receive the venue's latest posts, each with its publish date, post URL, caption, and one or
+      more images (often an event flyer or a monthly program; a carousel post may spread the lineup,
+      dates and prices across several slides). Extract every upcoming public event (today or later).
 
       Rules:
-      - Use both caption and image; flyers often contain details the caption omits.
+      - Use both caption and images; flyers often contain details the caption omits, and a single post's
+        slides may each announce a different event.
       - Resolve relative or partial dates using the post's publish date. Times are local (Europe/Vienna).
         If no start time is mentioned anywhere, use 20:00.
       - The same event often appears in several posts (e.g. monthly program and its own announcement).
@@ -154,8 +174,8 @@ class FetchInstagram
         text: "Post #{post[:url]} — published #{post[:published_on].iso8601}\nCaption: #{post[:caption].presence || "(none)"}"
       }
     ]
-    blocks << image_block(post[:image_url]) if post[:image_url].present?
-    blocks.compact
+    # A post can carry several images (carousel); send each as its own block.
+    blocks + post[:image_urls].filter_map { |image_url| image_block(image_url) }
   end
 
   # Instagram's CDN blocks Anthropic's URL fetcher via robots.txt,
@@ -192,6 +212,6 @@ class FetchInstagram
 
   def self.pause(seconds) = sleep(seconds)
 
-  private_class_method :fetch_posts, :extract_events, :system_prompt, :post_blocks, :image_block,
-                       :proxy_options, :anthropic
+  private_class_method :fetch_posts, :image_urls, :extract_events, :system_prompt, :post_blocks,
+                       :image_block, :proxy_options, :anthropic
 end

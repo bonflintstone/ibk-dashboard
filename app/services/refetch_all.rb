@@ -11,7 +11,8 @@ class RefetchAll
     "SNKTBRTLM" => FetchSnktbrtlm,
     "Gans Anders" => FetchGansAnders,
     "Montagu" => FetchMontagu,
-    "Theater unter Sternen" => FetchTheaterUnterSternen
+    "Theater unter Sternen" => FetchTheaterUnterSternen,
+    "PMK" => FetchPmk
   }.freeze
 
   # Venues with only a handful of events per year — an empty scrape is

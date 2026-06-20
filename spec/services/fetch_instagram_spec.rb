@@ -28,6 +28,21 @@ RSpec.describe FetchInstagram do
                   display_url: "https://cdn.example.com/program.jpg",
                   edge_media_to_caption: { edges: [] }
                 }
+              },
+              {
+                node: {
+                  shortcode: "GHI789",
+                  taken_at_timestamp: 1.day.ago.to_i,
+                  display_url: "https://cdn.example.com/cover.jpg",
+                  edge_media_to_caption: { edges: [ { node: { text: "Programm August" } } ] },
+                  edge_sidecar_to_children: {
+                    edges: [
+                      { node: { display_url: "https://cdn.example.com/slide1.jpg" } },
+                      { node: { display_url: "https://cdn.example.com/slide2.jpg" } },
+                      { node: { display_url: "https://cdn.example.com/slide3.jpg" } }
+                    ]
+                  }
+                }
               }
             ]
           }
@@ -102,11 +117,22 @@ RSpec.describe FetchInstagram do
     expect(messages).to have_received(:create) do |params|
       blocks = params[:messages].first[:content]
       image_blocks = blocks.select { |block| block[:type] == "image" }
-      expect(image_blocks.size).to eq(2)
+      # Two single-image posts plus the three slides of the carousel post.
+      expect(image_blocks.size).to eq(5)
       expect(image_blocks.first[:source]).to include(type: "base64", media_type: "image/jpeg")
       expect(blocks.first[:text]).to include("https://www.instagram.com/p/ABC123/")
       expect(blocks.first[:text]).to include("GROOVE HARBOR")
     end
+  end
+
+  it "sends every slide of a multi-photo carousel post" do
+    FetchInstagram.call(profile)
+
+    expect(Typhoeus).to have_received(:get).with("https://cdn.example.com/slide1.jpg", anything)
+    expect(Typhoeus).to have_received(:get).with("https://cdn.example.com/slide2.jpg", anything)
+    expect(Typhoeus).to have_received(:get).with("https://cdn.example.com/slide3.jpg", anything)
+    # The carousel's cover (display_url) is redundant with its slides, so it is skipped.
+    expect(Typhoeus).not_to have_received(:get).with("https://cdn.example.com/cover.jpg", anything)
   end
 
   it "skips the extraction when the posts have not changed and events exist" do
@@ -150,7 +176,7 @@ RSpec.describe FetchInstagram do
 
     proxy = { proxy: "http://gate.example.com:7000", proxyuserpwd: "user:pass" }
     expect(Typhoeus).to have_received(:get).with(FetchInstagram::PROFILE_URL, hash_including(proxy))
-    expect(Typhoeus).to have_received(:get).with(%r{https://cdn\.example\.com/}, hash_including(proxy)).twice
+    expect(Typhoeus).to have_received(:get).with(%r{https://cdn\.example\.com/}, hash_including(proxy)).exactly(5).times
   end
 
   it "raises when Instagram does not respond with 200" do

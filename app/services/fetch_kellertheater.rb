@@ -3,19 +3,23 @@ class FetchKellertheater
     response = HTTParty.get("https://www.kellertheater.at/spielplan/terminuebersicht/")
     document = Nokogiri::HTML(response.body)
 
-    document.css(".actdates .date").map do |event_row|
-      datestring = event_row.css(".day .short").text
-      timestring = event_row.css("p.subtitle").text.split(" um ").last.strip
+    document.css(".actdates .date").flat_map do |date_block|
+      date = date_block.css(".day .long").text[%r{\d{2}\.\d{2}\.\d{4}}]
+      next [] if date.blank?
 
-      datetime = Time.zone.strptime(datestring.split.last + timestring, "%d.%m.%y %H:%M")
-      next unless datetime.present?
+      # A single day can list several shows; each is its own article.
+      date_block.css(".dayacts article").filter_map do |article|
+        # Some entries omit the start time ("um HH:MM") — default rather than
+        # let a single odd row raise and abort the whole scrape.
+        time = article.css("p.subtitle").text[/\d{1,2}:\d{2}/] || "20:00"
+        datetime = Time.zone.strptime("#{date} #{time}", "%d.%m.%Y %H:%M")
 
-      name = event_row.css("article h4").text.strip
-      description = event_row.css(".text p").text
-      location = "Kellertheater"
-      link = event_row.css(".text a.more").attr("href").value
+        name = article.css("h4").text.strip
+        description = article.css(".text p").text.strip
+        link = article.css(".text a.more").attr("href")&.value || "https://www.kellertheater.at/spielplan/"
 
-      Event.create(datetime:, location:, name:, link:, description:, organization: "Kellertheater", source: :scraper)
+        Event.create(datetime:, location: "Kellertheater", name:, link:, description:, organization: "Kellertheater", source: :scraper)
+      end
     end
   end
 end
