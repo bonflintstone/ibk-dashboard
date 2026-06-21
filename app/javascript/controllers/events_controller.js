@@ -15,7 +15,7 @@ export default class extends Controller {
   static targets = [
     "event", "dateGroup", "dateLink", "panel", "navRow", "navButton",
     "selectionBar", "selectionLabel", "shareButton", "bookmarkButton",
-    "emptyMessage", "stickyHeader"
+    "bookmarkCount", "emptyMessage", "stickyHeader"
   ]
 
   connect() {
@@ -117,11 +117,19 @@ export default class extends Controller {
     event.preventDefault()
     event.stopPropagation()
 
-    const key = event.currentTarget.closest("[data-events-target~=event]").dataset.bookmarkKey
+    const eventEl = event.currentTarget.closest("[data-events-target~=event]")
+    const key = eventEl.dataset.bookmarkKey
     const adding = !this.bookmarks.has(key)
     adding ? this.bookmarks.add(key) : this.bookmarks.delete(key)
     cacheKeys(this.bookmarks)
     push(adding ? { add: [key] } : { remove: [key] })
+
+    // The like count moves with this browser's own like, mirroring the
+    // optimistic backend write.
+    const countEl = eventEl.querySelector("[data-events-target~=bookmarkCount]")
+    const likes = Math.max(0, (parseInt(countEl.textContent, 10) || 0) + (adding ? 1 : -1))
+    countEl.textContent = likes
+    countEl.classList.toggle("hidden", likes === 0)
 
     this.markBookmarkButtons()
     if (this.mode === "bookmarked") this.apply()
@@ -168,6 +176,9 @@ export default class extends Controller {
     this.updateNav()
 
     const anythingVisible = this.dateGroupTargets.some((group) => !group.classList.contains("hidden"))
+    this.emptyMessageTarget.textContent = this.mode === "bookmarked"
+      ? "Mit dem Herz rechts am Event kannst du es dir speichern - kein Login nötig"
+      : "Keine Events für diese Auswahl."
     this.emptyMessageTarget.classList.toggle("hidden", anythingVisible)
 
     this.persist()
@@ -184,7 +195,7 @@ export default class extends Controller {
     this.navRowTarget.classList.toggle("flex", !selected)
     this.selectionBarTarget.classList.toggle("hidden", !selected)
     this.selectionBarTarget.classList.toggle("flex", selected)
-    this.selectionLabelTarget.textContent = this.mode === "bookmarked" ? "Gemerkt" : this.value
+    this.selectionLabelTarget.textContent = this.mode === "bookmarked" ? "Meine Events" : this.value
     this.shareButtonTarget.classList.toggle("hidden", this.mode !== "bookmarked")
 
     this.navButtonTargets.forEach((button) => {
@@ -229,12 +240,13 @@ export default class extends Controller {
   }
 
   markBookmarkButtons() {
+    const off = ["text-rose-400", "hover:text-rose-500"]
+    const active = ["text-red-600"]
     this.bookmarkButtonTargets.forEach((button) => {
       const key = button.closest("[data-events-target~=event]").dataset.bookmarkKey
       const on = this.bookmarks.has(key)
-      button.classList.toggle("text-gray-300", !on)
-      button.classList.toggle("hover:text-gray-500", !on)
-      button.classList.toggle("text-gray-900", on)
+      off.forEach((klass) => button.classList.toggle(klass, !on))
+      active.forEach((klass) => button.classList.toggle(klass, on))
       button.querySelector("svg").classList.toggle("fill-current", on)
       button.setAttribute("aria-pressed", on)
     })

@@ -8,6 +8,8 @@ class EventsController < ApplicationController
       .where(datetime: Date.today..)
       .order(datetime: :asc)
     @refetch_event = RefetchEvent.last
+    # How many people have liked each event, keyed like Event#bookmark_key.
+    @like_counts = Bookmark.group(:event_key).count
   end
 
   def feed
