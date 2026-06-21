@@ -1,4 +1,4 @@
-<% require "rails"; require "dotenv-rails"; Dotenv::Rails.overload %>
+<% require "rails"; require "dotenv-rails"; Dotenv::Rails.overwrite = true; Dotenv::Rails.load %>
 
 # Name of your application. Used to uniquely configure containers.
 service: ibk_dashboard
@@ -31,8 +31,27 @@ env:
     - HCAPTCHA_SECRET_KEY
     - DECODO_AUTH
     - DECODO_URL
+    - SENTRY_DSN
   clear:
     SOLID_QUEUE_IN_PUMA: true
+
+# Self-hosted error tracking. Runs as its own container on the kamal network, so the
+# app reaches it directly and kamal-proxy can route a subdomain to it (see README/setup).
+accessories:
+  bugsink:
+    image: bugsink/bugsink:2.2.2
+    host: ibk-dashboard.at
+    env:
+      clear:
+        PORT: 8000
+        BEHIND_HTTPS_PROXY: true
+        BASE_URL: https://bugsink.ibk-dashboard.at
+        DATABASE_PATH: /data/db.sqlite3
+      secret:
+        - SECRET_KEY
+        - CREATE_SUPERUSER
+    volumes:
+      - bugsink_data:/data
 
 volumes:
   - "storage:/rails/storage"

@@ -49,3 +49,7 @@ gem "mission_control-jobs", "~> 1.0"
 
 # QR codes for the bookmark-sync share modal
 gem "rqrcode", "~> 2.2"
+
+# Error tracking — reports exceptions to the self-hosted Bugsink accessory (Sentry protocol)
+gem "sentry-ruby", "~> 6.6"
+gem "sentry-rails", "~> 6.6"
