@@ -51,3 +51,25 @@ bin/kamal deploy
 ```
 
 Useful aliases (see `config/deploy.yml`): `bin/kamal console`, `bin/kamal logs`, `bin/kamal shell`, `bin/kamal dbc`.
+
+### Error tracking
+
+Unhandled exceptions are reported to a self-hosted [Bugsink](https://www.bugsink.com) instance at https://bugsink.ibk-dashboard.at. The app uses the standard `sentry-ruby`/`sentry-rails` gems (Bugsink speaks the Sentry protocol); `config/initializers/sentry.rb` only reports in production, ships no PII, and no-ops unless `SENTRY_DSN` is set — so development and test stay silent. To wire it up, create a project in the Bugsink UI, put its DSN in `SENTRY_DSN` (`.env.local`), and `bin/kamal deploy`.
+
+Bugsink runs as a Kamal **accessory** (`config/deploy.yml`), SQLite-backed on the `bugsink_data` volume:
+
+```sh
+bin/kamal accessory boot bugsink
+```
+
+Kamal does **not** route accessories through kamal-proxy via `deploy.yml`, so the subdomain + TLS is registered manually on the host. Re-run this whenever the proxy **or** the `bugsink` accessory container is recreated (it does not persist across either):
+
+```sh
+ssh root@ibk-dashboard.at 'docker exec kamal-proxy kamal-proxy deploy bugsink \
+  --target ibk_dashboard-bugsink:8000 \
+  --host bugsink.ibk-dashboard.at \
+  --health-check-path /health/ready \
+  --tls'
+```
+
+`--health-check-path /health/ready` is required — kamal-proxy defaults to `/up` (and `/health/` also 404s on Bugsink), so the wrong path fails with "target failed to become healthy" even though the container is healthy. If the first boot logs a permission error on `/data/db.sqlite3`, the volume needs `chown -R 14237:14237 /data`.
