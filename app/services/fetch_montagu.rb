@@ -1,4 +1,5 @@
 require "base64"
+require "digest"
 
 # Montagu publishes its bar programme only as a monthly poster image on
 # the Programm page (no structured HTML), so the poster is located in the
@@ -32,10 +33,24 @@ class FetchMontagu
   }.freeze
 
   def self.call
-    events = extract_events(fetch_posters)
+    events = cached_events(fetch_posters)
     events = events.select { |event| event[:datetime] >= Time.zone.now.beginning_of_day }
 
     events.each { |event| Event.create(event) }
+  end
+
+  # The poster changes only about once a month, but RefetchAll wipes and
+  # recreates Montagu's events every run (and treats 0 events as a broken
+  # scrape), so this can't simply skip like FetchInstagram. Instead the
+  # extracted events are cached on a digest of the poster bytes: an unchanged
+  # poster recreates the same events with no (paid) vision call, while a new
+  # poster digests differently, misses the cache and triggers a fresh
+  # extraction.
+  def self.cached_events(posters)
+    digest = Digest::SHA256.hexdigest(posters.map { |poster| poster[:data] }.join)
+    Rails.cache.fetch("fetch_montagu/events/#{digest}", expires_in: 90.days) do
+      extract_events(posters)
+    end
   end
 
   # Around the turn of the month the page can show the current and the next
@@ -124,5 +139,6 @@ class FetchMontagu
     @anthropic ||= Anthropic::Client.new
   end
 
-  private_class_method :fetch_posters, :full_size_url, :extract_events, :system_prompt, :anthropic
+  private_class_method :cached_events, :fetch_posters, :full_size_url, :extract_events,
+                       :system_prompt, :anthropic
 end

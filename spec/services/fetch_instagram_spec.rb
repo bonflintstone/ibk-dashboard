@@ -142,6 +142,21 @@ RSpec.describe FetchInstagram do
     expect(messages).to have_received(:create).once
   end
 
+  it "skips extraction when only the signed image URLs rotate between fetches" do
+    FetchInstagram.call(profile)
+
+    # Instagram hands back the same posts but with freshly signed image URLs;
+    # the content is unchanged, so no second (paid) extraction should run.
+    rotated = instagram_json.gsub(".jpg", ".jpg?_nc_oh=ROTATED")
+    allow(Typhoeus).to receive(:get)
+      .with(FetchInstagram::PROFILE_URL, anything)
+      .and_return(double(code: 200, body: rotated))
+
+    FetchInstagram.call(profile.reload)
+
+    expect(messages).to have_received(:create).once
+  end
+
   it "re-extracts after the digest is cleared" do
     FetchInstagram.call(profile)
     Event.where(organization: profile.organization).destroy_all

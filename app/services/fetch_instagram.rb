@@ -44,7 +44,7 @@ class FetchInstagram
 
   def self.call(profile)
     posts = fetch_posts(profile.username)
-    digest = Digest::SHA256.hexdigest(posts.to_json)
+    digest = posts_digest(posts)
 
     # Skip the (paid) extraction when the profile hasn't posted anything
     # new since the last successful run. Clear posts_digest to force one.
@@ -63,6 +63,19 @@ class FetchInstagram
     end
 
     profile.update!(posts_digest: digest)
+  end
+
+  # Instagram regenerates every image URL with a fresh signed query string
+  # (oe, _nc_oh, _nc_gid …) on each fetch, so digesting the raw posts would
+  # change every run and defeat the skip. A post's content is fully captured
+  # by its shortcode (post URL), publish date, caption and image count — an
+  # image can't be swapped into an existing post — so the fingerprint is built
+  # from those alone, ignoring the volatile URLs.
+  def self.posts_digest(posts)
+    fingerprint = posts.map do |post|
+      [ post[:url], post[:published_on], post[:caption], post[:image_urls].size ]
+    end
+    Digest::SHA256.hexdigest(fingerprint.to_json)
   end
 
   def self.fetch_posts(username)
@@ -212,6 +225,6 @@ class FetchInstagram
 
   def self.pause(seconds) = sleep(seconds)
 
-  private_class_method :fetch_posts, :image_urls, :extract_events, :system_prompt, :post_blocks,
-                       :image_block, :proxy_options, :anthropic
+  private_class_method :posts_digest, :fetch_posts, :image_urls, :extract_events, :system_prompt,
+                       :post_blocks, :image_block, :proxy_options, :anthropic
 end

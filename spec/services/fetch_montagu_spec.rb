@@ -120,6 +120,29 @@ RSpec.describe FetchMontagu do
     expect(Event.exists?(name: "Open Mic Night")).to be(true)
   end
 
+  it "reuses cached events for an unchanged poster instead of calling Claude again" do
+    allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
+
+    FetchMontagu.call
+    FetchMontagu.call
+
+    expect(messages).to have_received(:create).once
+    expect(Event.exists?(name: "Open Mic Night")).to be(true)
+  end
+
+  it "re-extracts when the poster image changes" do
+    allow(Rails).to receive(:cache).and_return(ActiveSupport::Cache::MemoryStore.new)
+
+    FetchMontagu.call
+    allow(HTTParty).to receive(:get)
+      .with("https://www.montagu-hostel.com/wp-content/uploads/2026/06/June-26-print.jpg")
+      .and_return(double(body: "NEWJPEGDATA", headers: { "content-type" => "image/jpeg" }))
+
+    FetchMontagu.call
+
+    expect(messages).to have_received(:create).twice
+  end
+
   it "raises when the page contains no poster" do
     allow(HTTParty).to receive(:get).with(FetchMontagu::URL)
       .and_return(double(body: "<html><body><div class='content'></div></body></html>"))
