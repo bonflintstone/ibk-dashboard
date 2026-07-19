@@ -12,20 +12,29 @@ class RefetchAll
     "Gans Anders" => FetchGansAnders,
     "Montagu" => FetchMontagu,
     "Theater unter Sternen" => FetchTheaterUnterSternen,
-    "PMK" => FetchPmk
+    "PMK" => FetchPmk,
+    "Leokino Open Air" => FetchLeokinoOpenAir
   }.freeze
 
   # Venues with only a handful of events per year — an empty scrape is
   # legitimate there and doesn't indicate a broken scraper. Theater unter
-  # Sternen is a two-week summer festival, empty outside its season.
-  EMPTY_ALLOWED = [ "SNKTBRTLM", "Gans Anders", "Theater unter Sternen" ].freeze
+  # Sternen and the Leokino Open Air are summer festivals, empty outside
+  # their season.
+  EMPTY_ALLOWED = [ "SNKTBRTLM", "Gans Anders", "Theater unter Sternen", "Leokino Open Air" ].freeze
+
+  # Instagram is fetched through a paid residential proxy and Meta blocks
+  # aggressively; the profiles post rarely, so each one is only refetched
+  # every three days. A failed fetch leaves fetched_at untouched and is
+  # retried on the next daily run; manual refetches from the status page
+  # (RefetchAll.refetch) are never throttled.
+  INSTAGRAM_FETCH_INTERVAL = 3.days
 
   class EmptyScrape < StandardError; end
 
   def self.call
     SCRAPERS.each_key { |organization| refetch(organization) }
 
-    InstagramProfile.order(:organization).pluck(:organization).each_with_index do |organization, index|
+    due_instagram_organizations.each_with_index do |organization, index|
       pause(15) if index.positive?
       refetch(organization)
     end
@@ -40,6 +49,12 @@ class RefetchAll
   # Every refetchable organization: static scrapers plus Instagram profiles.
   def self.organizations
     SCRAPERS.keys + InstagramProfile.order(:organization).pluck(:organization)
+  end
+
+  def self.due_instagram_organizations
+    InstagramProfile.order(:organization)
+      .where("fetched_at IS NULL OR fetched_at <= ?", INSTAGRAM_FETCH_INTERVAL.ago)
+      .pluck(:organization)
   end
 
   def self.refetch(organization)

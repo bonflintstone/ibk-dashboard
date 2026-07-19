@@ -16,7 +16,7 @@ RSpec.describe "Events page" do
     expect(response.body).to include("data-controller=\"events\"")
     expect(response.body).to include("data-category=\"Konzerte\"").and include("data-category=\"Kultur\"")
     expect(response.body).to include("data-organization=\"Treibhaus\"")
-    expect(response.body).to include(">Alle<").and include("Kategorie").and include("Venue").and include(">Gemerkt<")
+    expect(response.body).to include(">Alle<").and include("Kategorie").and include("Venue").and include(">Meine Events<")
     expect(response.body).to include("data-bookmark-key=\"Konzert|#{konzert.datetime.iso8601}|Treibhaus\"")
     expect(response.body).to include("events#toggleBookmark")
     expect(response.body).to include("#date-#{1.day.from_now.to_date.iso8601}")
@@ -102,6 +102,31 @@ RSpec.describe "Events page" do
 
       expect(response).to have_http_status(:unprocessable_entity)
       expect(response.parsed_body["error"]).to be_present
+    end
+
+    it "checks the captcha before spending tokens on extraction" do
+      allow(Hcaptcha).to receive(:verify?).and_return(false)
+      allow(ExtractEventFromLink).to receive(:call)
+
+      post extract_events_path, params: { link: "https://x.test" }, as: :json
+
+      expect(response).to have_http_status(:forbidden)
+      expect(response.parsed_body["error"]).to include("Captcha")
+      expect(ExtractEventFromLink).not_to have_received(:call)
+    end
+
+    it "does not require a second captcha solve for the submission after a verified extraction" do
+      allow(ExtractEventFromLink).to receive(:call).and_return({})
+      # hCaptcha tokens are single-use: the first verification succeeds,
+      # re-verifying the consumed token on create would fail.
+      allow(Hcaptcha).to receive(:verify?).and_return(true, false)
+
+      post extract_events_path, params: { link: "https://x.test" }, as: :json
+      post events_path, params: { event: { name: "Impro-Abend", location: "Bogen 30",
+                                           link: "https://example.com", datetime: 1.day.from_now.iso8601 } }
+
+      expect(Event.count).to eq(1)
+      expect(flash[:alert]).to be_nil
     end
   end
 end

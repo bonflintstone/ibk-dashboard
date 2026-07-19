@@ -12,6 +12,8 @@ Rails 8 app, deployed with [Kamal](https://kamal-deploy.org) to https://ibk-dash
 
 Each venue has a scraper service in `app/services/` (e.g. `FetchTreibhaus`, `FetchBrux`, ...). `RefetchAll` deletes all scraped events and runs every scraper, then records a `RefetchEvent` (shown as "Last updated" on the page). Events submitted via the web form (`source: :webform`) are not touched by refetches.
 
+Venues without a usable website are scraped from Instagram (`InstagramProfile` + `FetchInstagram`, posts and flyer images go through the Claude API). Instagram runs through a paid residential proxy, so the daily refetch only fetches each profile every three days (`RefetchAll::INSTAGRAM_FETCH_INTERVAL`); manual refetches from `/status` are never throttled.
+
 ### Background jobs
 
 Jobs run on [Solid Queue](https://github.com/rails/solid_queue), which runs inside the Puma process (`SOLID_QUEUE_IN_PUMA: true` in `config/deploy.yml`, `plugin :solid_queue` in `config/puma.rb`) — no separate job container. Recurring schedule in `config/recurring.yml`:

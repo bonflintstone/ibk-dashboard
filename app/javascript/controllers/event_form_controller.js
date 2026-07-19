@@ -16,6 +16,14 @@ export default class extends Controller {
       return
     }
 
+    // The server checks the captcha before the (paid) extraction, so an
+    // unsolved captcha would only waste a round trip.
+    const captchaToken = this.element.querySelector("[name='h-captcha-response']")?.value
+    if (this.element.querySelector(".h-captcha") && !captchaToken) {
+      this.showStatus("Bitte löse zuerst das Captcha.")
+      return
+    }
+
     this.loadButtonTarget.disabled = true
     this.loadButtonTarget.textContent = "Lädt…"
     this.showStatus("Seite wird ausgelesen…")
@@ -27,7 +35,7 @@ export default class extends Controller {
           "Content-Type": "application/json",
           "X-CSRF-Token": document.querySelector("meta[name=csrf-token]")?.content
         },
-        body: JSON.stringify({ link })
+        body: JSON.stringify({ link, "h-captcha-response": captchaToken })
       })
       const data = await response.json()
 
@@ -35,6 +43,9 @@ export default class extends Controller {
         this.fill(data)
         this.reveal()
         this.hideStatus()
+      } else if (response.status === 403) {
+        // Captcha rejected — keep the form as is so they can retry.
+        this.showStatus(data.error || "Captcha-Prüfung fehlgeschlagen. Bitte versuche es erneut.")
       } else {
         // Extraction failed — let them fill it in by hand instead of dead-ending.
         this.reveal()
@@ -65,6 +76,15 @@ export default class extends Controller {
     this.detailsTarget.classList.remove("hidden")
     this.detailsTarget.classList.add("flex")
     this.manualButtonTarget.classList.add("hidden")
+    // Normally already rendered on modal open; harmless fallback.
+    this.loadCaptcha()
+  }
+
+  // Renders the captcha when THIS form's modal opens (the modal:open event is
+  // also fired by unrelated modals like the share-bookmarks one).
+  prepareCaptcha(event) {
+    if (!event.target.contains(this.element)) return
+
     this.loadCaptcha()
   }
 

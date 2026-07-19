@@ -92,6 +92,13 @@ RSpec.describe "Bookmarks API" do
   end
 
   describe "GET /bookmarks/calendar" do
+    include ActiveSupport::Testing::TimeHelpers
+
+    # The examples pin the event date (the DTSTART assertion depends on it),
+    # so the clock is pinned too — webform events must not lie in the past.
+    before { travel_to Time.zone.local(2026, 6, 10, 12, 0) }
+    after { travel_back }
+
     def create_event(attributes = {})
       Event.create!({ name: "Konzert", location: "Treibhaus", organization: "Treibhaus",
                       datetime: Time.zone.local(2026, 6, 17, 20), link: "https://example.com/konzert",

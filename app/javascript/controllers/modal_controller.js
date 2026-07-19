@@ -10,6 +10,9 @@ export default class extends Controller {
     event.preventDefault()
     this.dialogTarget.show()
     this.backdropTarget.classList.remove("hidden")
+    // Lets content inside the dialog react to being shown (the event form
+    // renders its hCaptcha widget on this signal).
+    this.dispatch("open")
   }
 
   close() {

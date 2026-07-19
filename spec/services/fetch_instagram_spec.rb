@@ -142,6 +142,16 @@ RSpec.describe FetchInstagram do
     expect(messages).to have_received(:create).once
   end
 
+  it "stamps fetched_at on both extracting and digest-skipped runs" do
+    FetchInstagram.call(profile)
+    expect(profile.reload.fetched_at).to be_present
+
+    profile.update!(fetched_at: 4.days.ago)
+    FetchInstagram.call(profile)
+
+    expect(profile.reload.fetched_at).to be > 1.minute.ago
+  end
+
   it "skips extraction when only the signed image URLs rotate between fetches" do
     FetchInstagram.call(profile)
 

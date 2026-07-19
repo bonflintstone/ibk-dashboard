@@ -99,6 +99,27 @@ RSpec.describe RefetchAll do
     expect(RefetchAll).to have_received(:pause).once.with(15)
   end
 
+  it "skips Instagram profiles fetched within the last three days" do
+    fresh = InstagramProfile.create!(
+      username: "arche.ahoi", organization: "Arche Ahoi", location: "Bogen 30",
+      fetched_at: 1.day.ago
+    )
+    due = InstagramProfile.create!(
+      username: "pembau.art", organization: "Pembau", location: "Pembau",
+      fetched_at: 4.days.ago
+    )
+    RefetchAll::SCRAPERS.each do |organization, fetcher|
+      allow(fetcher).to receive(:call) { create_event(organization) }
+    end
+    allow(FetchInstagram).to receive(:call)
+
+    RefetchAll.call
+
+    expect(FetchInstagram).to have_received(:call).with(due)
+    expect(FetchInstagram).not_to have_received(:call).with(fresh)
+    expect(ScraperRun.find_by(scraper: "Arche Ahoi")).to be_nil
+  end
+
   it "records a failure for a profile but continues when FetchInstagram raises" do
     InstagramProfile.create!(
       username: "arche.ahoi", organization: "Arche Ahoi", location: "Bogen 30"

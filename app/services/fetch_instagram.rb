@@ -48,7 +48,12 @@ class FetchInstagram
 
     # Skip the (paid) extraction when the profile hasn't posted anything
     # new since the last successful run. Clear posts_digest to force one.
-    return if digest == profile.posts_digest
+    # fetched_at drives RefetchAll's throttling and marks a successful
+    # Instagram fetch — a raised error must leave it untouched.
+    if digest == profile.posts_digest
+      profile.update!(fetched_at: Time.current)
+      return
+    end
 
     events = extract_events(posts, profile)
     events = events.select { |event| event[:datetime] >= Time.zone.now.beginning_of_day }
@@ -62,7 +67,7 @@ class FetchInstagram
       end
     end
 
-    profile.update!(posts_digest: digest)
+    profile.update!(posts_digest: digest, fetched_at: Time.current)
   end
 
   # Instagram regenerates every image URL with a fresh signed query string
