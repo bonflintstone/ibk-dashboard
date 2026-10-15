@@ -69,6 +69,34 @@ RSpec.describe RefetchAll do
     expect(RefetchEvent.last).to be_present
   end
 
+  it "keeps the categories of events that come back on refetch" do
+    create_event("Treibhaus", name: "Jazzbrunch").update_column(:category, "Konzerte")
+    RefetchAll::SCRAPERS.each do |organization, fetcher|
+      allow(fetcher).to receive(:call) do
+        create_event(organization)
+        create_event(organization, name: "Jazzbrunch") if organization == "Treibhaus"
+      end
+    end
+
+    RefetchAll.call
+
+    expect(Event.find_by!(organization: "Treibhaus", name: "Jazzbrunch").category).to eq("Konzerte")
+    expect(Event.find_by!(organization: "Treibhaus", name: "Event Treibhaus").category).to be_nil
+  end
+
+  it "reports categorization failures instead of swallowing them" do
+    error = RuntimeError.new("Claude unavailable")
+    allow(CategorizeEvents).to receive(:call).and_raise(error)
+    allow(Rails.error).to receive(:report)
+    RefetchAll::SCRAPERS.each do |organization, fetcher|
+      allow(fetcher).to receive(:call) { create_event(organization) }
+    end
+
+    RefetchAll.call
+
+    expect(Rails.error).to have_received(:report).with(error, hash_including(handled: true)).at_least(:once)
+  end
+
   it "runs FetchInstagram for each Instagram profile" do
     profile = InstagramProfile.create!(
       username: "arche.ahoi", organization: "Arche Ahoi", location: "Bogen 30"

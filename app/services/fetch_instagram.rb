@@ -179,7 +179,8 @@ class FetchInstagram
       - location: "#{profile.location}" unless a post clearly states a different place.
       - category: the kind of event. Theater (plays, performance, improv), Konzerte (live music),
         Party (club nights, DJ sets), Kultur (exhibitions, film, readings, talks, markets),
-        Workshop (participatory classes), Politik (demos, political talks), Andere (anything else).
+        Workshop (participatory classes), Politik (demos, political talks), Kinder (made for
+        children or families; wins over the format), Andere (anything else).
       - Skip events that already happened, posts that are not event announcements (statements,
         lost & found, recaps), and events not open to the public.
     PROMPT

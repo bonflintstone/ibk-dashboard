@@ -2,7 +2,7 @@ class Event < ApplicationRecord
   # Every event is assigned one of these by the Claude API (CategorizeEvents,
   # or FetchInstagram during extraction). nil means "not categorized yet" and
   # is displayed as "Andere" until the next categorization run.
-  CATEGORIES = [ "Theater", "Konzerte", "Party", "Kultur", "Workshop", "Politik", "Andere" ].freeze
+  CATEGORIES = [ "Theater", "Konzerte", "Party", "Kultur", "Workshop", "Politik", "Kinder", "Andere" ].freeze
 
   ORGANIZATIONS = [
     "Theater Praesent", "Brux", "Tiroler Landestheater", "Kellertheater",

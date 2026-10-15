@@ -2,6 +2,9 @@ import { Controller } from "@hotwired/stimulus"
 import { cachedKeys, cacheKeys, pull, push, merge } from "bookmark_store"
 
 const STORAGE_KEY = "ibk-dashboard-filter"
+// Categories left out of "Alle" and the venue filter; they only show when
+// their own category chip is picked (or when bookmarked).
+const HIDDEN_BY_DEFAULT = ["Kinder"]
 
 // Client-side event filtering along ONE dimension at a time. The nav offers
 // "Alle", "Kategorie"/"Venue" (which expand a chip panel below; clicking
@@ -162,8 +165,8 @@ export default class extends Controller {
     this.eventTargets.forEach((el) => {
       const matches =
         this.mode === "bookmarked" ? this.bookmarks.has(el.dataset.bookmarkKey) :
-        !this.value ? true :
-        (this.mode === "category" ? el.dataset.category : el.dataset.organization) === this.value
+        this.mode === "category" ? el.dataset.category === this.value :
+        !HIDDEN_BY_DEFAULT.includes(el.dataset.category) && (!this.value || el.dataset.organization === this.value)
       el.classList.toggle("hidden", !matches)
     })
 

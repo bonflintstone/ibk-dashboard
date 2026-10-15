@@ -30,6 +30,7 @@ class ReviewEvent
     - Kultur: exhibitions, film screenings, readings, talks, markets, community gatherings
     - Workshop: participatory sessions where attendees learn or practice something
     - Politik: demonstrations, political talks and debates, activism events
+    - Kinder: events made for children, young audiences or families (wins over the format)
     - Andere: everything that fits none of the above
   PROMPT
 

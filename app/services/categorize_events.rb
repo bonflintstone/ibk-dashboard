@@ -2,7 +2,9 @@
 # API. Events the model leaves out (or a failed call) simply stay nil and are
 # retried on the next run; the UI shows them as "Andere" in the meantime.
 class CategorizeEvents
-  MODEL = :"claude-opus-4-8"
+  # Picking one of a handful of categories is simple classification, so this
+  # runs on the cheap Haiku model at low effort rather than Opus.
+  MODEL = :"claude-haiku-5-5"
   BATCH_SIZE = 100
 
   CATEGORIES_SCHEMA = {
@@ -37,6 +39,9 @@ class CategorizeEvents
     - Workshop: participatory sessions where attendees learn or practice something
       (classes, jams with instruction, open workshops)
     - Politik: demonstrations, political talks and debates, activism events
+    - Kinder: events made for children, young audiences or families (children's theater,
+      family concerts, kids' workshops, "für junges Publikum", "ab 4 Jahren"). This wins
+      over the format: a children's play is Kinder, not Theater.
     - Andere: everything that fits none of the above
 
     The venue (organization) is a hint, not the answer — a club can host a workshop,
@@ -54,7 +59,7 @@ class CategorizeEvents
       thinking: { type: "adaptive" },
       system_: SYSTEM_PROMPT,
       messages: [ { role: "user", content: events_json(events) } ],
-      output_config: { format: { type: "json_schema", schema: CATEGORIES_SCHEMA } }
+      output_config: { effort: "low", format: { type: "json_schema", schema: CATEGORIES_SCHEMA } }
     )
 
     json = message.content.find { |block| block.type == :text }&.text

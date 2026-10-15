@@ -64,11 +64,14 @@ class RefetchAll
         # scraped events instead of leaving the organization empty.
         # 0 scraped events counts as broken (e.g. site redesign).
         Event.transaction do
-          Event.where(source: :scraper, organization:).destroy_all
+          scraped = Event.where(source: :scraper, organization:)
+          known_categories = scraped.where.not(category: nil).pluck(:name, :category)
+          scraped.destroy_all
           fetcher.call
-          if Event.where(source: :scraper, organization:).none? && EMPTY_ALLOWED.exclude?(organization)
+          if scraped.none? && EMPTY_ALLOWED.exclude?(organization)
             raise EmptyScrape, "scraper returned 0 events"
           end
+          restore_categories(scraped, known_categories)
         end
       end
     else
@@ -82,12 +85,22 @@ class RefetchAll
     categorize(Event.where(organization:, category: nil))
   end
 
+  # Every refetch recreates the scraped events, so without this each one would
+  # be sent to Claude again every day. An event that comes back under the same
+  # name keeps its category; only genuinely new events get categorized.
+  def self.restore_categories(events, known_categories)
+    known_categories.group_by(&:last).each do |category, pairs|
+      events.where(category: nil, name: pairs.map(&:first)).update_all(category:)
+    end
+  end
+
   # A failed categorization must not fail the (already committed) scrape —
-  # the events stay uncategorized and are retried on the next run.
+  # the events stay uncategorized and are retried on the next run. It is
+  # still reported (→ Bugsink), otherwise every event silently shows "Andere".
   def self.categorize(events)
     CategorizeEvents.call(events)
   rescue StandardError => error
-    Rails.logger.error("CategorizeEvents failed: #{error.class}: #{error.message}")
+    Rails.error.report(error, handled: true, context: { service: "CategorizeEvents" })
   end
 
   # Spaces out requests so Instagram doesn't rate-limit the run (429).

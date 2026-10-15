@@ -130,7 +130,7 @@ class FetchMontagu
       - category: the kind of event. Theater (plays, performance, improv), Konzerte (live
         music), Party (club nights, DJ sets), Kultur (exhibitions, film, readings, talks,
         markets), Workshop (participatory classes), Politik (demos, political talks),
-        Andere (anything else).
+        Kinder (made for children or families; wins over the format), Andere (anything else).
       - Skip entries that are not events open to the public (opening hours, food specials).
     PROMPT
   end
