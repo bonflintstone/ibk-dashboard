@@ -2,13 +2,13 @@ source "https://rubygems.org"
 
 gem "bootsnap", require: false
 gem "dotenv-rails", "~> 3.1"
-gem "httparty", "~> 0.22.0"
+gem "httparty", "~> 0.24.0"
 gem "typhoeus", "~> 1.4" # Instagram scraping: Meta blocks Ruby net/http's TLS fingerprint
 gem "importmap-rails"
 gem "jbuilder"
 gem "propshaft"
 gem "puma", ">= 5.0"
-gem "rails", "~> 8.0.0"
+gem "rails", "~> 8.1.0"
 gem "solid_cable"
 gem "solid_cache"
 gem "solid_queue"
@@ -37,7 +37,7 @@ end
 
 gem "rspec-rails", "~> 8.0", :groups => [:development, :test]
 
-gem "anthropic", "~> 1.48"
+gem "anthropic", "~> 2.10"
 
 gem "rails_admin", "~> 3.3"
 
@@ -48,8 +48,8 @@ gem "rails_admin-i18n", "~> 1.20"
 gem "mission_control-jobs", "~> 1.0"
 
 # QR codes for the bookmark-sync share modal
-gem "rqrcode", "~> 2.2"
+gem "rqrcode", "~> 3.2"
 
 # Error tracking — reports exceptions to the self-hosted Bugsink accessory (Sentry protocol)
-gem "sentry-ruby", "~> 6.6"
-gem "sentry-rails", "~> 6.6"
+gem "sentry-ruby", "~> 7.3"
+gem "sentry-rails", "~> 7.3"
